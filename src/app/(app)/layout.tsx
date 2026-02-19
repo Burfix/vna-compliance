@@ -11,16 +11,22 @@ export default async function AppLayout({
   const session = await auth();
   const env = getEnv();
 
-  // Redirect to login if not authenticated and not in mock mode
-  if (!session?.user && !env.MOCK_MODE) {
-    redirect("/login");
-  }
-
-  // Use mock user if in mock mode and no session
+  // Use session user or mock user in MOCK_MODE
   const user = session?.user || (env.MOCK_MODE ? { name: "Demo Manager", role: "ADMIN" } : null);
 
-  if (!user) {
-    redirect("/login");
+  // Middleware handles redirect to login, so if we get here without a user in production, show error
+  if (!user && !env.MOCK_MODE) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8 text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h1>
+          <p className="text-gray-600 mb-6">Please log in to access this page.</p>
+          <a href="/login" className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Go to Login
+          </a>
+        </div>
+      </div>
+    );
   }
 
   const navigation = [
