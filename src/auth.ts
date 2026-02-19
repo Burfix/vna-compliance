@@ -47,6 +47,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: "/login",
   },
   callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const isOnApp = nextUrl.pathname.startsWith("/dashboard") || 
+                      nextUrl.pathname.startsWith("/audits") || 
+                      nextUrl.pathname.startsWith("/tenants") ||
+                      nextUrl.pathname.startsWith("/settings");
+      const isOnLogin = nextUrl.pathname.startsWith("/login");
+
+      if (isOnApp) {
+        if (isLoggedIn) return true;
+        return false; // Redirect to login
+      } else if (isLoggedIn && isOnLogin) {
+        return Response.redirect(new URL("/dashboard", nextUrl));
+      }
+      
+      return true;
+    },
+  callbacks: {
     async jwt({ token, user }) {
       if (user) {
         const extendedUser = user as ExtendedUser;

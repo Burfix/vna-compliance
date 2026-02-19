@@ -58,6 +58,9 @@ export default function NewAuditForm({
         
         if (result.success && result.auditId) {
           router.push(`/audits/${result.auditId}`);
+        } else {
+          setError(result.error || "Failed to create audit");
+          setIsSubmitting(false);
         }
       }
     } catch {

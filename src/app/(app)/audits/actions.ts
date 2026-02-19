@@ -27,30 +27,38 @@ export async function getStoresForAudits() {
 }
 
 export async function createAuditDraft(formDataOrObject: FormData | { storeId: string; templateId: string }) {
-  const user = await requireRole(["ADMIN", "OFFICER"]);
+  try {
+    const user = await requireRole(["ADMIN", "OFFICER"]);
 
-  const data = formDataOrObject instanceof FormData 
-    ? {
-        storeId: formDataOrObject.get("storeId") as string,
-        templateId: formDataOrObject.get("templateId") as string,
-      }
-    : formDataOrObject;
+    const data = formDataOrObject instanceof FormData 
+      ? {
+          storeId: formDataOrObject.get("storeId") as string,
+          templateId: formDataOrObject.get("templateId") as string,
+        }
+      : formDataOrObject;
 
-  const validated = createAuditSchema.parse(data);
+    const validated = createAuditSchema.parse(data);
 
-  const audit = await prisma.audit.create({
-    data: {
-      storeId: validated.storeId,
-      templateId: validated.templateId,
-      conductedById: user.id,
-      status: "DRAFT",
-    },
-  });
+    const audit = await prisma.audit.create({
+      data: {
+        storeId: validated.storeId,
+        templateId: validated.templateId,
+        conductedById: user.id,
+        status: "DRAFT",
+      },
+    });
 
-  revalidatePath("/dashboard");
-  revalidatePath("/audits");
+    revalidatePath("/dashboard");
+    revalidatePath("/audits");
 
-  return { success: true, auditId: audit.id };
+    return { success: true, auditId: audit.id };
+  } catch (error) {
+    console.error("createAuditDraft error:", error);
+    if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
+      throw error;
+    }
+    return { success: false, error: error instanceof Error ? error.message : "Failed to create audit" };
+  }
 }
 
 export async function getAuditById(id: string) {
