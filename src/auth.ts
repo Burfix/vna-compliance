@@ -3,6 +3,13 @@ import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/db";
 import type { Role } from "@prisma/client";
 
+interface ExtendedUser {
+  id: string;
+  username: string;
+  name: string | null;
+  role: Role;
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
@@ -42,9 +49,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.username = (user as { username: string }).username;
-        token.role = user.role;
+        const extendedUser = user as ExtendedUser;
+        token.id = extendedUser.id;
+        token.username = extendedUser.username;
+        token.role = extendedUser.role;
       }
       return token;
     },
