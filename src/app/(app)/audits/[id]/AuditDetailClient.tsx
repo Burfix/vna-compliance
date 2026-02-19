@@ -29,7 +29,7 @@ interface AuditDetailClientProps {
     };
     conductedBy: {
       name: string | null;
-      email: string;
+      username: string;
     };
     score: number | null;
   };
@@ -144,7 +144,7 @@ export default function AuditDetailClient({ audit, isMockMode }: AuditDetailClie
           <div>
             <p className="text-sm font-medium text-gray-500">Conducted By</p>
             <p className="mt-1 text-lg font-semibold text-gray-900">{audit.conductedBy.name || "Unknown"}</p>
-            <p className="text-sm text-gray-600">{audit.conductedBy.email}</p>
+            <p className="text-sm text-gray-600">{audit.conductedBy.username}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Audit Date</p>

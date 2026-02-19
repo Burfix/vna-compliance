@@ -15,10 +15,10 @@ export async function GET() {
   try {
     // Create demo users
     const manager = await prisma.user.upsert({
-      where: { email: "manager@vna.com" },
+      where: { username: "sarah" },
       update: { active: true },
       create: {
-        email: "manager@vna.com",
+        username: "sarah",
         name: "Sarah Johnson",
         role: "ADMIN",
         active: true,
@@ -26,11 +26,11 @@ export async function GET() {
     });
 
     const officer = await prisma.user.upsert({
-      where: { email: "officer@vna.com" },
+      where: { username: "john" },
       update: { active: true },
       create: {
-        email: "officer@vna.com",
-        name: "James Miller",
+        username: "john",
+        name: "John Davis",
         role: "OFFICER",
         active: true,
       },
@@ -87,7 +87,7 @@ export async function GET() {
       success: true,
       message: "Database seeded successfully",
       created: {
-        users: [manager.email, officer.email],
+        users: [manager.username, officer.username],
         stores: [store1.name, store2.name],
         templates: [template.name],
       },
