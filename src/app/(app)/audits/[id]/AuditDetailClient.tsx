@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getCategoryColor, getCategoryLabel } from "@/lib/precincts";
 import { VA_FB_STANDARD_TEMPLATE, getTemplateItems } from "@/lib/auditTemplates";
@@ -55,14 +55,18 @@ export default function AuditDetailClient({ audit, isMockMode }: AuditDetailClie
 
   const [calculatedScore, setCalculatedScore] = useState(0);
 
-  // Update score whenever checklist changes
-  useEffect(() => {
+  // Calculate score from checklist items (excluding N/A)
+  const calculateScore = useCallback(() => {
     const applicableItems = checklistItems.filter(item => item.status !== "na");
     const total = applicableItems.length;
     const compliant = applicableItems.filter(item => item.status === "compliant").length;
-    const score = total > 0 ? Math.round((compliant / total) * 100) : 0;
-    setCalculatedScore(score);
+    return total > 0 ? Math.round((compliant / total) * 100) : 0;
   }, [checklistItems]);
+
+  // Update score whenever checklist changes
+  useEffect(() => {
+    setCalculatedScore(calculateScore());
+  }, [calculateScore]);
 
   const handleItemChange = (itemId: string, newStatus: "compliant" | "non-compliant" | "na") => {
     setChecklistItems(prev =>
