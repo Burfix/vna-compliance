@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Public paths that don't require authentication
-  const publicPaths = ["/", "/login", "/api/auth"];
+  const publicPaths = ["/", "/login", "/api"];
   
   // Check if path is public
   const isPublicPath = publicPaths.some(path => pathname.startsWith(path));
@@ -14,11 +14,16 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   
-  // For protected paths, check for session cookie
-  const hasSession = request.cookies.has("authjs.session-token") || 
-                     request.cookies.has("__Secure-authjs.session-token");
+  // For protected paths, check for any session-related cookies
+  const cookies = request.cookies;
+  const hasSession = Array.from(cookies.getAll()).some(cookie => 
+    cookie.name.includes("session") || cookie.name.includes("authjs")
+  );
+  
+  console.log("Middleware - path:", pathname, "hasSession:", hasSession, "cookies:", Array.from(cookies.getAll()).map(c => c.name));
   
   if (!hasSession) {
+    console.log("Middleware - no session, redirecting to login");
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
