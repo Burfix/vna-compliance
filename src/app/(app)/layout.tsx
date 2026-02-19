@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getEnv } from "@/lib/env";
 
@@ -42,6 +41,9 @@ export default async function AppLayout({
       : "bg-blue-100 text-blue-800 border-blue-200";
   };
 
+  // If no user in production, the content won't render anyway
+  const displayUser = user || { name: "User", role: "USER" as const };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
@@ -68,13 +70,13 @@ export default async function AppLayout({
         </nav>
 
         {/* User info at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600">
-              {user.name?.[0] || "U"}
+        <div cldisplayUser.name?.[0] || "U"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
+                {displayUser.name || "User"}
+              </p>
+              <p className="text-xs text-gray-500">{displayUgray-900 truncate">
                 {user.name || "User"}
               </p>
               <p className="text-xs text-gray-500">{user.role}</p>
@@ -101,8 +103,8 @@ export default async function AppLayout({
                 DEMO MODE
               </span>
             )}
-            <span className={`px-2.5 py-1 text-xs font-medium border rounded ${getRoleBadgeColor(user.role)}`}>
-              {user.role}
+            <span className={`px-2.5 py-1 text-xs font-medium border rounded ${getRoleBadgeColor(displayUser.role)}`}>
+              {displayUser.role}
             </span>
           </div>
         </div>
