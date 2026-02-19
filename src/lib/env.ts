@@ -10,8 +10,8 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   DIRECT_URL: z.string().min(1, "DIRECT_URL is required"),
 
-  // Authentication
-  NEXTAUTH_SECRET: z.string().min(1, "NEXTAUTH_SECRET is required"),
+  // Authentication (NextAuth v5 uses AUTH_SECRET)
+  AUTH_SECRET: z.string().min(1, "AUTH_SECRET is required"),
   NEXTAUTH_URL: z.string().url().optional(),
 
   // Feature flags
