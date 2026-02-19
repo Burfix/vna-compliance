@@ -1,34 +1,30 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { loginAction } from "./actions";
 
 export default function LoginForm() {
-  const [username, setUsername] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    try {
-      const result = await signIn("credentials", {
-        username,
-        redirect: false,
-      });
+    const formData = new FormData(e.currentTarget);
 
+    try {
+      const result = await loginAction(formData);
       if (result?.error) {
-        setError("Invalid username. Please try again.");
+        setError(result.error);
         setLoading(false);
-      } else if (result?.ok) {
-        router.push("/dashboard");
-        router.refresh();
       }
-    } catch {
+    } catch (error) {
+      // Redirect throws an error, which is expected
+      if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
+        return;
+      }
       setError("An error occurred. Please try again.");
       setLoading(false);
     }
@@ -48,9 +44,8 @@ export default function LoginForm() {
         </label>
         <input
           id="username"
+          name="username"
           type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
           required
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Enter your username"
