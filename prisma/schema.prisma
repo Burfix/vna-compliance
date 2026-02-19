@@ -27,6 +27,23 @@ enum AuditStatus {
   SUBMITTED
 }
 
+enum CertificationType {
+  FIRE
+  ELECTRICAL
+  GAS
+  OHS
+  INSURANCE
+  FOOD_SAFETY
+  LIQUOR_LICENSE
+  OTHER
+}
+
+enum CertificationStatus {
+  VALID
+  EXPIRING_SOON
+  EXPIRED
+}
+
 model User {
   id        String   @id @default(cuid())
   username  String   @unique
@@ -49,7 +66,8 @@ model Store {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  audits Audit[]
+  audits          Audit[]
+  certifications  Certification[]
 
   @@map("stores")
 }
@@ -80,4 +98,21 @@ model Audit {
   conductedBy User          @relation(fields: [conductedById], references: [id])
 
   @@map("audits")
+}
+
+model Certification {
+  id          String              @id @default(cuid())
+  storeId     String
+  name        String
+  type        CertificationType
+  expiryDate  DateTime
+  isMandatory Boolean             @default(false)
+  issuedDate  DateTime?
+  issuer      String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@map("certifications")
 }
