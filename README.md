@@ -1,18 +1,23 @@
-# Operational Compliance Engine
+# V&A Waterfront Compliance System
 
-A minimal SaaS application for audit and compliance management with a **rock-solid, provider-agnostic foundation**.
+A production-ready compliance management system for the V&A Waterfront, featuring precinct-based organization, comprehensive F&B auditing with 68 checklist items, and username-only authentication.
 
-## ✨ What's New in v0.2.0
+## 🚀 Quick Deploy
 
-- ✅ **Fail-fast environment validation** with Zod
-- ✅ **Database-first debugging** (DB failures ≠ Auth failures)
-- ✅ **Comprehensive health monitoring**
-- ✅ **Zero-code migration to Nile** (or any provider)
-- ✅ **Verification scripts** for confidence
+**Deploy to Vercel in 5 minutes:**
 
-See [CHANGELOG.md](./CHANGELOG.md) for complete details.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/vna-compliance)
 
----
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete deployment guide.
+
+## ✨ Features
+
+- 🏛️ **8 V&A Precincts** - Silo District, Victoria Wharf, Alfred Mall, Quay/Harbor, etc.
+- 📋 **Comprehensive F&B Audits** - 68 items across 9 sections (Fire Safety, Hygiene, Food Safety, etc.)
+- ✅ **Smart Scoring** - Real-time calculation with N/A support for non-applicable items
+- 👤 **Simple Auth** - Username-only login (no passwords)
+- 📊 **Live Dashboard** - Precinct-based tenant overview with compliance tracking
+- 🎨 **Polished UI** - Tailwind CSS with color-coded compliance scores
 
 ## Quick Start
 
