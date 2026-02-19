@@ -53,19 +53,15 @@ export default function AuditDetailClient({ audit, isMockMode }: AuditDetailClie
     }))
   );
 
-  // Calculate score automatically (excluding N/A items)
-  const calculateScore = () => {
-    const applicableItems = checklistItems.filter(item => item.status !== "na");
-    const total = applicableItems.length;
-    const compliant = applicableItems.filter(item => item.status === "compliant").length;
-    return total > 0 ? Math.round((compliant / total) * 100) : 0;
-  };
-
-  const [calculatedScore, setCalculatedScore] = useState(calculateScore());
+  const [calculatedScore, setCalculatedScore] = useState(0);
 
   // Update score whenever checklist changes
   useEffect(() => {
-    setCalculatedScore(calculateScore());
+    const applicableItems = checklistItems.filter(item => item.status !== "na");
+    const total = applicableItems.length;
+    const compliant = applicableItems.filter(item => item.status === "compliant").length;
+    const score = total > 0 ? Math.round((compliant / total) * 100) : 0;
+    setCalculatedScore(score);
   }, [checklistItems]);
 
   const handleItemChange = (itemId: string, newStatus: "compliant" | "non-compliant" | "na") => {
