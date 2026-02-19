@@ -58,15 +58,19 @@ export function getEnv(): Env {
     if (error instanceof z.ZodError) {
       console.error("❌ Environment validation failed:");
       console.error("");
+      const missingVars: string[] = [];
       error.errors.forEach((err) => {
-        console.error(`  • ${err.path.join(".")}: ${err.message}`);
+        const varName = err.path.join(".");
+        console.error(`  • ${varName}: ${err.message}`);
+        missingVars.push(varName);
       });
       console.error("");
       console.error("💡 Check your .env file and ensure all required variables are set.");
       console.error("   See .env.example for reference.");
       console.error("");
+      console.error("Missing variables:", missingVars.join(", "));
     }
-    throw new Error("Environment validation failed");
+    throw new Error(`Environment validation failed: ${error instanceof z.ZodError ? error.errors.map(e => e.path.join(".")).join(", ") : "Unknown error"}`);
   }
 }
 
