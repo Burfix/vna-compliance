@@ -13,20 +13,20 @@ if [ ! -f .env ]; then
   echo "📝 Creating .env file from .env.example..."
   cp .env.example .env
   
-  # Generate NEXTAUTH_SECRET
+  # Generate AUTH_SECRET
   if command -v openssl &> /dev/null; then
-    NEXTAUTH_SECRET=$(openssl rand -base64 32)
+    AUTH_SECRET=$(openssl rand -base64 32)
     # Replace placeholder in .env
     if [[ "$OSTYPE" == "darwin"* ]]; then
       # macOS
-      sed -i '' "s|your-secret-key-here-generate-with-openssl-rand-base64-32|$NEXTAUTH_SECRET|" .env
+      sed -i '' "s|your-secret-key-here-generate-with-openssl-rand-base64-32|$AUTH_SECRET|" .env
     else
       # Linux
-      sed -i "s|your-secret-key-here-generate-with-openssl-rand-base64-32|$NEXTAUTH_SECRET|" .env
+      sed -i "s|your-secret-key-here-generate-with-openssl-rand-base64-32|$AUTH_SECRET|" .env
     fi
-    echo "✅ Generated NEXTAUTH_SECRET"
+    echo "✅ Generated AUTH_SECRET"
   else
-    echo "⚠️  OpenSSL not found. Please manually set NEXTAUTH_SECRET in .env"
+    echo "⚠️  OpenSSL not found. Please manually set AUTH_SECRET in .env"
   fi
   
   echo ""
