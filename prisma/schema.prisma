@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  OFFICER
+}
+
+enum Category {
+  FB
+  RETAIL
+  SERVICES
+}
+
+enum AuditStatus {
+  DRAFT
+  SUBMITTED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  name      String?
+  role      Role
+  active    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  conductedAudits Audit[]
+
+  @@map("users")
+}
+
+model Store {
+  id        String   @id @default(cuid())
+  name      String
+  unitCode  String   // e.g., "W-123", "SM-45"
+  precinct  String   // Victoria Wharf, Silo District, etc.
+  category  Category // F&B, Retail, Services
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  audits Audit[]
+
+  @@map("stores")
+}
+
+model AuditTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  audits Audit[]
+
+  @@map("audit_templates")
+}
+
+model Audit {
+  id            String      @id @default(cuid())
+  storeId       String
+  templateId    String
+  conductedById String
+  status        AuditStatus @default(DRAFT)
+  auditDate     DateTime    @default(now())
+  createdAt     DateTime    @default(now())
+
+  store       Store         @relation(fields: [storeId], references: [id])
+  template    AuditTemplate @relation(fields: [templateId], references: [id])
+  conductedBy User          @relation(fields: [conductedById], references: [id])
+
+  @@map("audits")
+}
