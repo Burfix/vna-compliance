@@ -19,7 +19,7 @@ try {
   console.log(`   • Demo Mode: ${safeInfo.demoMode ? "ENABLED" : "DISABLED"}`);
   console.log(`   • Database URL: ${safeInfo.hasDatabaseUrl ? "✓ SET" : "✗ MISSING"}`);
   console.log(`   • Direct URL: ${safeInfo.hasDirectUrl ? "✓ SET" : "✗ MISSING"}`);
-  console.log(`   • NextAuth Secret: ${safeInfo.hasNextAuthSecret ? "✓ SET" : "✗ MISSING"}`);
+  console.log(`   • Auth Secret: ${safeInfo.hasAuthSecret ? "✓ SET" : "✗ MISSING"}`);
   console.log("");
 
   if (env.DEMO_MODE) {
