@@ -70,16 +70,16 @@ export default async function AppLayout({
         </nav>
 
         {/* User info at bottom */}
-        <div cldisplayUser.name?.[0] || "U"}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600">
+              {displayUser.name?.[0] || "U"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
                 {displayUser.name || "User"}
               </p>
-              <p className="text-xs text-gray-500">{displayUgray-900 truncate">
-                {user.name || "User"}
-              </p>
-              <p className="text-xs text-gray-500">{user.role}</p>
+              <p className="text-xs text-gray-500">{displayUser.role}</p>
             </div>
           </div>
         </div>
