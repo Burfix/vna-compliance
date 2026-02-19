@@ -65,7 +65,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       
       return true;
     },
-  callbacks: {
     async jwt({ token, user }) {
       if (user) {
         const extendedUser = user as ExtendedUser;
