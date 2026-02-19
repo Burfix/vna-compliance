@@ -6,7 +6,7 @@ A production-ready compliance management system for the V&A Waterfront, featurin
 
 **Deploy to Vercel in 5 minutes:**
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/vna-compliance)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/burfix/vna-compliance)
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete deployment guide.
 
