@@ -5,21 +5,22 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { TenantManagementData, TenantData } from "./actions";
 import { TenantCard } from "./TenantCard";
 import { mockStores } from "@/lib/mock";
-import { getEnv } from "@/lib/env";
 
 type GroupBy = "none" | "category" | "precinct" | "risk";
 
 interface StoresClientProps {
   initialData: TenantManagementData;
+  isMockMode: boolean;
 }
 
-export default function StoresClient({ initialData }: StoresClientProps) {
+export default function StoresClient({ initialData, isMockMode }: StoresClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const env = getEnv();
+  
+  console.log("StoresClient - isMockMode:", isMockMode, "initialData tenants:", initialData.tenants.length);
   
   // Use mock data if MOCK_MODE, otherwise use DB data
-  const mockTenants: TenantData[] = env.MOCK_MODE ? mockStores.map(store => ({
+  const mockTenants: TenantData[] = isMockMode ? mockStores.map(store => ({
     id: store.id,
     name: store.name,
     precinct: store.precinct,
@@ -32,7 +33,7 @@ export default function StoresClient({ initialData }: StoresClientProps) {
     expiredCertCount: Math.random() > 0.9 ? 1 : 0,
   })) : [];
 
-  const data = env.MOCK_MODE ? {
+  const data = isMockMode ? {
     tenants: mockTenants,
     summary: {
       total: mockTenants.length,
@@ -41,6 +42,8 @@ export default function StoresClient({ initialData }: StoresClientProps) {
       expiringCerts: mockTenants.reduce((sum, t) => sum + t.expiringCertCount, 0),
     }
   } : initialData;
+  
+  console.log("StoresClient - Using data with", data.tenants.length, "tenants");
 
   const [groupBy, setGroupBy] = useState<GroupBy>((searchParams.get("group") as GroupBy) || "none");
 

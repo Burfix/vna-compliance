@@ -1,13 +1,12 @@
 "use client";
 
 import type { CertificationData, StoreDetailData } from "./actions";
-import type { CertificationType } from "@prisma/client";
 
 interface CertificationPanelProps {
   data: StoreDetailData;
 }
 
-const certTypeLabels: Record<CertificationType, string> = {
+const certTypeLabels: Record<string, string> = {
   FIRE: "Fire Safety",
   ELECTRICAL: "Electrical",
   GAS: "Gas",
@@ -18,7 +17,7 @@ const certTypeLabels: Record<CertificationType, string> = {
   OTHER: "Other",
 };
 
-const certTypeColors: Record<CertificationType, string> = {
+const certTypeColors: Record<string, string> = {
   FIRE: "bg-red-100 text-red-800 border-red-200",
   ELECTRICAL: "bg-yellow-100 text-yellow-800 border-yellow-200",
   GAS: "bg-orange-100 text-orange-800 border-orange-200",
@@ -70,9 +69,9 @@ export default function CertificationPanel({ data }: CertificationPanelProps) {
     if (!acc[cert.type]) acc[cert.type] = [];
     acc[cert.type].push(cert);
     return acc;
-  }, {} as Record<CertificationType, CertificationData[]>);
+  }, {} as Record<string, CertificationData[]>);
 
-  const sortedTypes = Object.keys(grouped).sort() as CertificationType[];
+  const sortedTypes = Object.keys(grouped).sort();
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm">

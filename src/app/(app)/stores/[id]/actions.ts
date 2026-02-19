@@ -1,12 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import type { Category, CertificationType } from "@prisma/client";
 
 export interface CertificationData {
   id: string;
   name: string;
-  type: CertificationType;
+  type: string;
   expiryDate: string;
   status: "VALID" | "EXPIRING_SOON" | "EXPIRED";
   isMandatory: boolean;
@@ -18,7 +17,7 @@ export interface StoreDetailData {
   name: string;
   unitCode: string;
   precinct: string;
-  category: Category;
+  category: string;
   certifications: CertificationData[];
   certificationSummary: {
     totalValid: number;

@@ -4,7 +4,6 @@ import CertificationPanel from "./CertificationPanel";
 import Link from "next/link";
 import { mockStores } from "@/lib/mock";
 import type { StoreDetailData, CertificationData } from "./actions";
-import type { CertificationType } from "@prisma/client";
 
 export default async function StoreDetailPage({
   params,
@@ -37,7 +36,7 @@ export default async function StoreDetailPage({
       {
         id: "cert-1",
         name: "Fire Safety Certificate",
-        type: "FIRE" as CertificationType,
+        type: "FIRE",
         expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
         status: "VALID",
         isMandatory: true,
@@ -46,7 +45,7 @@ export default async function StoreDetailPage({
       {
         id: "cert-2",
         name: "Public Liability Insurance",
-        type: "INSURANCE" as CertificationType,
+        type: "INSURANCE",
         expiryDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
         status: "EXPIRING_SOON",
         isMandatory: true,
@@ -55,7 +54,7 @@ export default async function StoreDetailPage({
       {
         id: "cert-3",
         name: "Electrical Compliance",
-        type: "ELECTRICAL" as CertificationType,
+        type: "ELECTRICAL",
         expiryDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
         status: "EXPIRED",
         isMandatory: false,
@@ -64,7 +63,7 @@ export default async function StoreDetailPage({
       {
         id: "cert-4",
         name: "Food Safety Certificate",
-        type: "FOOD_SAFETY" as CertificationType,
+        type: "FOOD_SAFETY",
         expiryDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
         status: "VALID",
         isMandatory: mockStore.category === "FB",
@@ -73,7 +72,7 @@ export default async function StoreDetailPage({
       {
         id: "cert-5",
         name: "OHS Compliance",
-        type: "OHS" as CertificationType,
+        type: "OHS",
         expiryDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
         status: "VALID",
         isMandatory: true,
@@ -125,13 +124,13 @@ export default async function StoreDetailPage({
     );
   }
 
-  const categoryLabels = {
+  const categoryLabels: Record<string, string> = {
     FB: "F&B",
     RETAIL: "Retail",
     SERVICES: "Services",
   };
 
-  const categoryColors = {
+  const categoryColors: Record<string, string> = {
     FB: "bg-orange-100 text-orange-800 border-orange-200",
     RETAIL: "bg-blue-100 text-blue-800 border-blue-200",
     SERVICES: "bg-purple-100 text-purple-800 border-purple-200",
