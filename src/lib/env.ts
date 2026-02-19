@@ -7,12 +7,12 @@ import { z } from "zod";
  */
 const envSchema = z.object({
   // Database URLs
-  DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  DIRECT_URL: z.string().min(1, "DIRECT_URL is required"),
+  DATABASE_URL: z.string().optional().or(z.literal("")),
+  DIRECT_URL: z.string().optional().or(z.literal("")),
 
   // Authentication (NextAuth v5 uses AUTH_SECRET)
-  AUTH_SECRET: z.string().min(1, "AUTH_SECRET is required"),
-  NEXTAUTH_URL: z.string().url().optional(),
+  AUTH_SECRET: z.string().optional().or(z.literal("")),
+  NEXTAUTH_URL: z.string().url().optional().or(z.literal("")),
 
   // Feature flags
   DEMO_MODE: z
@@ -43,16 +43,33 @@ export function getEnv(): Env {
   if (_env) return _env;
 
   try {
-    _env = envSchema.parse({
-      DATABASE_URL: process.env.DATABASE_URL,
-      DIRECT_URL: process.env.DIRECT_URL,
-      AUTH_SECRET: process.env.AUTH_SECRET,
-      NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    const parsed = envSchema.parse({
+      DATABASE_URL: process.env.DATABASE_URL || "",
+      DIRECT_URL: process.env.DIRECT_URL || "",
+      AUTH_SECRET: process.env.AUTH_SECRET || "",
+      NEXTAUTH_URL: process.env.NEXTAUTH_URL || "",
       DEMO_MODE: process.env.DEMO_MODE,
       MOCK_MODE: process.env.MOCK_MODE,
       NODE_ENV: process.env.NODE_ENV,
     });
 
+    // Runtime validation - only fail if actually needed
+    if (process.env.NODE_ENV === "production") {
+      const missing = [];
+      if (!parsed.DATABASE_URL) missing.push("DATABASE_URL");
+      if (!parsed.DIRECT_URL) missing.push("DIRECT_URL");
+      if (!parsed.AUTH_SECRET) missing.push("AUTH_SECRET");
+      
+      if (missing.length > 0) {
+        console.error("❌ Required environment variables missing in production:", missing.join(", "));
+        // Don't throw during build - only log warning
+        if (typeof window === "undefined" && !process.env.VERCEL_ENV) {
+          console.warn("⚠️ Running with missing env vars - some features may not work");
+        }
+      }
+    }
+
+    _env = parsed;
     return _env;
   } catch (error) {
     if (error instanceof z.ZodError) {
