@@ -4,6 +4,9 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
+  "github": {
+    "silent": true
+  },
   "rewrites": [
     {
       "source": "/(.*)",
