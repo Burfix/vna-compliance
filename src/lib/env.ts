@@ -46,7 +46,7 @@ export function getEnv(): Env {
     _env = envSchema.parse({
       DATABASE_URL: process.env.DATABASE_URL,
       DIRECT_URL: process.env.DIRECT_URL,
-      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+      AUTH_SECRET: process.env.AUTH_SECRET,
       NEXTAUTH_URL: process.env.NEXTAUTH_URL,
       DEMO_MODE: process.env.DEMO_MODE,
       MOCK_MODE: process.env.MOCK_MODE,
@@ -89,6 +89,6 @@ export function getSafeEnvInfo() {
     demoMode: env.DEMO_MODE,
     hasDatabaseUrl: !!env.DATABASE_URL,
     hasDirectUrl: !!env.DIRECT_URL,
-    hasNextAuthSecret: !!env.NEXTAUTH_SECRET,
+    hasAuthSecret: !!env.AUTH_SECRET,
   };
 }
