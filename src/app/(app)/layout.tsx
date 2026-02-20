@@ -10,14 +10,14 @@ export default async function AppLayout({
   const session = await auth();
   const env = getEnv();
 
-  console.log("AppLayout - session exists:", !!session?.user, "MOCK_MODE:", env.MOCK_MODE);
+  console.log("[AppLayout] session exists:", !!session?.user, "username:", session?.user?.username, "MOCK_MODE:", env.MOCK_MODE);
 
   // Use session user or mock user in MOCK_MODE
   const user = session?.user || (env.MOCK_MODE ? { name: "Demo Manager", role: "ADMIN" } : null);
 
   // Middleware handles redirect to login, so if we get here without a user in production, show error
   if (!user && !env.MOCK_MODE) {
-    console.error("AppLayout - NO USER - showing auth error page");
+    console.error("[AppLayout] NO USER AND NO MOCK_MODE - showing auth error page");
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8 text-center">
@@ -31,7 +31,7 @@ export default async function AppLayout({
     );
   }
 
-  console.log("AppLayout - rendering with user:", user?.name);
+  console.log("[AppLayout] Rendering with user:", user?.name, "user object:", !!user);
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: "📊" },
