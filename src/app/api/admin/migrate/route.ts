@@ -5,15 +5,6 @@ import { getEnv } from "@/lib/env";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  // Only allow in demo mode
-  const env = getEnv();
-  if (!env.DEMO_MODE) {
-    return NextResponse.json(
-      { error: "Migration endpoint is only available in DEMO_MODE" },
-      { status: 403 }
-    );
-  }
-
   try {
     console.log("🔧 Starting migration and seed process...");
 

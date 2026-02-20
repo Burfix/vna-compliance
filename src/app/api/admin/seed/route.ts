@@ -3,15 +3,6 @@ import { NextResponse } from "next/server";
 import { getEnv } from "@/lib/env";
 
 export async function GET() {
-  // Only allow in demo mode
-  const env = getEnv();
-  if (!env.DEMO_MODE) {
-    return NextResponse.json(
-      { error: "Seed endpoint is only available in DEMO_MODE" },
-      { status: 403 }
-    );
-  }
-
   try {
     // Create demo users
     const manager = await prisma.user.upsert({
