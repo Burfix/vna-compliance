@@ -3,25 +3,31 @@ import { auth } from "@/auth";
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
-  // Public paths that don't require authentication
-  const publicPaths = [
-    "/",
+  // Public path prefixes (NOT "/" — that matches everything!)
+  const publicPrefixes = [
     "/login",
     "/demo",
     "/api/auth",
+    "/api/debug",
     "/_next",
     "/favicon.ico",
+    "/zz-debug",
   ];
 
-  // Check if path is public
-  const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
+  // Exact match for root, prefix match for everything else
+  const isPublicPath =
+    pathname === "/" ||
+    publicPrefixes.some((prefix) => pathname.startsWith(prefix));
+
+  console.log(`[middleware] path=${pathname} public=${isPublicPath} authed=${!!req.auth?.user}`);
 
   if (isPublicPath) {
-    return; // Allow access
+    return; // Allow access without auth
   }
 
-  // For protected paths, check for authenticated user
+  // Protected path — require authenticated user
   if (!req.auth?.user) {
+    console.log(`[middleware] REDIRECTING to /login (no auth) from ${pathname}`);
     const loginUrl = new URL("/login", req.nextUrl.origin);
     loginUrl.searchParams.set("next", pathname + req.nextUrl.search);
     return Response.redirect(loginUrl);

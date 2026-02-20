@@ -2,27 +2,42 @@ import Link from "next/link";
 
 export default function StoreNotFound() {
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="text-center py-12">
-        <div className="mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Store Not Found</h1>
-          <p className="text-gray-600 mb-6">
-            The store you&apos;re looking for doesn&apos;t exist or has been removed.
-            <br />
-            <span className="text-sm text-gray-500">(Invalid ID or missing database record)</span>
-          </p>
+    <div style={{ padding: 40 }}>
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 999999,
+          background: "magenta",
+          color: "white",
+          fontWeight: 900,
+          fontSize: 18,
+          padding: 14,
+          textAlign: "center",
+          borderBottom: "4px solid darkmagenta",
+        }}
+      >
+        STORE NOT FOUND — notFound() was triggered — this is /stores/[id]/not-found.tsx
+      </div>
+      <div style={{ height: 70 }} />
+      <div className="max-w-lg mx-auto text-center py-16">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-100 mb-6">
+          <span style={{ fontSize: 36 }}>🚫</span>
         </div>
-        <Link 
-          href="/stores" 
-          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        <h1 className="text-3xl font-bold text-gray-900 mb-3">Store Not Found</h1>
+        <p className="text-gray-600 mb-2">
+          The store ID in the URL does not match any record in the database.
+        </p>
+        <p className="text-sm text-gray-400 mb-8">
+          This means notFound() was called — the param was received but the DB lookup returned null.
+        </p>
+        <Link
+          href="/stores"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
         >
-          <span>←</span>
-          <span>Back to Stores</span>
+          ← Back to Stores
         </Link>
       </div>
     </div>
