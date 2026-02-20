@@ -225,58 +225,60 @@ function heatColor(score: number, highRisk: number): string {
 
 function HeatCard({ card }: { card: PrecinctCard }) {
   const border = heatColor(card.avgComplianceScore, card.highRiskCount);
+  const encodedPrecinct = encodeURIComponent(card.precinct);
 
   return (
-    <Link
-      href={`/stores?precinct=${encodeURIComponent(card.precinct)}`}
-      className={`block rounded-lg border-2 p-4 transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${border}`}
+    <div
+      className={`rounded-lg border-2 p-4 ${border}`}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-xl">
-          {getPrecinctIcon(card.precinct as Precinct)}
-        </span>
-        <h4 className="font-semibold text-gray-900 text-sm leading-tight">
-          {card.precinct}
-        </h4>
-      </div>
+      <Link
+        href={`/stores?precinct=${encodedPrecinct}`}
+        className="block hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xl">
+            {getPrecinctIcon(card.precinct as Precinct)}
+          </span>
+          <h4 className="font-semibold text-gray-900 text-sm leading-tight">
+            {card.precinct}
+          </h4>
+        </div>
 
-      <p className="text-2xl font-bold text-gray-900">
-        {card.avgComplianceScore}%
-      </p>
-      <p className="text-xs text-gray-500 mb-3">
-        avg compliance · {card.storeCount} stores
-      </p>
+        <p className="text-2xl font-bold text-gray-900">
+          {card.avgComplianceScore}%
+        </p>
+        <p className="text-xs text-gray-500 mb-3">
+          avg compliance · {card.storeCount} stores
+        </p>
+      </Link>
 
       <div className="flex flex-wrap gap-1.5">
         {card.highRiskCount > 0 && (
           <Link
-            href={`/stores?precinct=${encodeURIComponent(card.precinct)}&filter=highrisk`}
+            href={`/stores?precinct=${encodedPrecinct}&filter=highrisk`}
             className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 hover:bg-red-200 transition-colors"
-            onClick={(e) => e.stopPropagation()}
           >
             🔥 {card.highRiskCount} high risk
           </Link>
         )}
         {card.expiringSoonCount > 0 && (
           <Link
-            href={`/stores?precinct=${encodeURIComponent(card.precinct)}&filter=expiringsoon`}
+            href={`/stores?precinct=${encodedPrecinct}&filter=expiringsoon`}
             className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200 hover:bg-orange-200 transition-colors"
-            onClick={(e) => e.stopPropagation()}
           >
             ⏰ {card.expiringSoonCount} expiring
           </Link>
         )}
         {card.nonCompliantCount > 0 && (
           <Link
-            href={`/stores?precinct=${encodeURIComponent(card.precinct)}&filter=noncompliant`}
+            href={`/stores?precinct=${encodedPrecinct}&filter=noncompliant`}
             className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 border border-yellow-200 hover:bg-yellow-200 transition-colors"
-            onClick={(e) => e.stopPropagation()}
           >
             ⚠️ {card.nonCompliantCount} non-compliant
           </Link>
         )}
       </div>
-    </Link>
+    </div>
   );
 }
 
