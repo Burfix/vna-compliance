@@ -146,3 +146,37 @@ export async function getStoreBySlug(
     })),
   };
 }
+
+export async function getStoreById(
+  id: string
+): Promise<StoreDetail | null> {
+  const store = await prisma.store.findUnique({
+    where: { id },
+    include: {
+      certifications: {
+        orderBy: { expiresAt: "asc" },
+      },
+    },
+  });
+
+  if (!store) return null;
+
+  return {
+    id: store.id,
+    code: store.code,
+    slug: store.slug,
+    name: store.name,
+    precinct: store.precinct,
+    category: store.category,
+    unitCode: store.unitCode,
+    certifications: store.certifications.map((c) => ({
+      id: c.id,
+      type: c.type,
+      status: c.status,
+      issuedAt: c.issuedAt,
+      expiresAt: c.expiresAt,
+      referenceNo: c.referenceNo,
+      notes: c.notes,
+    })),
+  };
+}

@@ -12,6 +12,7 @@ interface StoresClientProps {
 }
 
 interface TenantData {
+  id: string;
   slug: string;
   name: string;
   precinct: string;
@@ -34,6 +35,7 @@ export default function StoresClient({ stores }: StoresClientProps) {
       riskScore >= 30 ? "High" : riskScore >= 15 ? "Medium" : "Low";
 
     return {
+      id: store.id,
       slug: store.slug,
       name: store.name,
       precinct: store.precinct,
@@ -198,7 +200,7 @@ export default function StoresClient({ stores }: StoresClientProps) {
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {groupStores.map((store) => (
-                <Link key={store.slug} href={`/stores/${store.slug}`}>
+                <Link key={store.slug} href={`/stores/${store.id}`}>
                   <div className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-lg transition cursor-pointer">
                     <div className="flex items-start justify-between mb-3">
                       <div>
