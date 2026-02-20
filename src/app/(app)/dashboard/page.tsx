@@ -75,26 +75,34 @@ export default async function DashboardPage() {
           value={payload.totalStores}
           icon="🏪"
           color="blue"
+          href="/stores"
         />
         <KPICard
           title="Non-Compliant"
           value={payload.nonCompliantStores}
           icon="⚠️"
           color="red"
+          href="/stores?filter=noncompliant"
           subtitle={payload.highRiskStores > 0 ? `${payload.highRiskStores} high risk` : undefined}
+          secondaryHref={payload.highRiskStores > 0 ? "/stores?filter=highrisk" : undefined}
+          secondaryLabel={payload.highRiskStores > 0 ? `🔥 ${payload.highRiskStores} High Risk` : undefined}
         />
         <KPICard
           title="Audits This Month"
           value={payload.auditsThisMonth}
           icon="📋"
           color="green"
+          href="/audits?range=this_month"
         />
         <KPICard
           title="Open Actions"
           value={payload.openActions}
           icon="🔧"
           color="purple"
+          href="/stores?filter=open_actions"
           subtitle={payload.expiringSoonCount > 0 ? `${payload.expiringSoonCount} expiring soon` : undefined}
+          secondaryHref={payload.expiringSoonCount > 0 ? "/stores?filter=expiringsoon" : undefined}
+          secondaryLabel={payload.expiringSoonCount > 0 ? `⏰ ${payload.expiringSoonCount} Expiring Soon` : undefined}
         />
       </div>
 
@@ -336,13 +344,19 @@ function KPICard({
   value,
   icon,
   color,
+  href,
   subtitle,
+  secondaryHref,
+  secondaryLabel,
 }: {
   title: string;
   value: number;
   icon: string;
   color: string;
+  href: string;
   subtitle?: string;
+  secondaryHref?: string;
+  secondaryLabel?: string;
 }) {
   const colorClasses = {
     blue: "bg-blue-50 text-blue-600",
@@ -352,19 +366,35 @@ function KPICard({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
-          {subtitle && (
-            <p className="mt-1 text-xs text-gray-400">{subtitle}</p>
-          )}
+    <div className="relative">
+      <Link
+        href={href}
+        className="block bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all cursor-pointer group"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-500 group-hover:text-gray-700 transition-colors">{title}</p>
+            <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
+            {subtitle && (
+              <p className="mt-1 text-xs text-gray-400">{subtitle}</p>
+            )}
+          </div>
+          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${colorClasses[color as keyof typeof colorClasses]}`}>
+            <span className="text-2xl">{icon}</span>
+          </div>
         </div>
-        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${colorClasses[color as keyof typeof colorClasses]}`}>
-          <span className="text-2xl">{icon}</span>
+        <div className="mt-2 text-xs text-gray-400 group-hover:text-blue-500 transition-colors">
+          View details →
         </div>
-      </div>
+      </Link>
+      {secondaryHref && secondaryLabel && (
+        <Link
+          href={secondaryHref}
+          className="absolute -bottom-2 left-4 inline-flex items-center px-2.5 py-1 text-xs font-medium bg-white border border-gray-200 rounded-full shadow-sm hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+        >
+          {secondaryLabel}
+        </Link>
+      )}
     </div>
   );
 }

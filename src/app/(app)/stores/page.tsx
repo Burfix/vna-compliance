@@ -1,36 +1,54 @@
 import { getStores } from "@/lib/stores";
+import {
+  getFilteredStores,
+  parseStoreFilter,
+  getFilterMeta,
+} from "@/lib/store-filters";
+import type { StoreFilter } from "@/lib/store-filters";
 import StoresClient from "./StoresClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function StoresPage() {
-  const stores = await getStores();
+interface Props {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
 
-  console.log("[StoresPage] Loaded", stores.length, "stores. First 3 IDs:", stores.slice(0, 3).map(s => s.id));
+export default async function StoresPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const filter = parseStoreFilter(params.filter as string | undefined);
+  const search = (params.q as string) ?? "";
+  const precinct = (params.precinct as string) ?? "";
+  const category = (params.category as string) ?? "";
+
+  const hasFilter = filter !== "all";
+  const meta = getFilterMeta(filter);
+
+  // Use filtered path when filter param is present, otherwise the original getStores
+  let stores;
+  let totalBeforeFilter: number | undefined;
+
+  if (hasFilter || search || precinct || category) {
+    const result = await getFilteredStores(filter, search, precinct, category);
+    stores = result.stores;
+    totalBeforeFilter = result.totalBeforeFilter;
+  } else {
+    stores = await getStores();
+  }
 
   return (
     <div>
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 999999,
-          background: "cyan",
-          color: "black",
-          fontWeight: 900,
-          fontSize: 16,
-          padding: 12,
-          textAlign: "center",
-          borderBottom: "4px solid teal",
+      <StoresClient
+        stores={stores}
+        filterMeta={{
+          filter,
+          title: meta.title,
+          description: meta.description,
+          icon: meta.icon,
+          count: stores.length,
+          totalStores: totalBeforeFilter,
         }}
-      >
-        STORES LIST LOADED — {stores.length} stores — build:{" "}
-        {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local"} — links use store.id
-      </div>
-      <div style={{ height: 60 }} />
-      <StoresClient stores={stores} />
+        initialSearch={search}
+      />
     </div>
   );
 }
