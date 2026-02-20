@@ -4,7 +4,6 @@ import {
   parseStoreFilter,
   getFilterMeta,
 } from "@/lib/store-filters";
-import type { StoreFilter } from "@/lib/store-filters";
 import StoresClient from "./StoresClient";
 
 export const dynamic = "force-dynamic";

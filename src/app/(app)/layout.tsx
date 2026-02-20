@@ -26,8 +26,14 @@ export default async function AppLayout({
 
   console.log("[AppLayout] Rendering with user:", user?.name, "user object:", !!user);
 
+  // If no user in production, the content won't render anyway
+  const displayUser = user || { name: "User", role: "USER" as const };
+
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: "📊" },
+    ...(displayUser.role === "ADMIN"
+      ? [{ name: "Executive", href: "/exec", icon: "🏛️" }]
+      : []),
     { name: "Audits", href: "/audits", icon: "📋" },
     { name: "Tenants", href: "/stores", icon: "🏪" },
     { name: "Settings", href: "/settings", icon: "⚙️" },
@@ -38,9 +44,6 @@ export default async function AppLayout({
       ? "bg-purple-100 text-purple-800 border-purple-200" 
       : "bg-blue-100 text-blue-800 border-blue-200";
   };
-
-  // If no user in production, the content won't render anyway
-  const displayUser = user || { name: "User", role: "USER" as const };
 
   return (
     <div className="min-h-screen bg-gray-50">
