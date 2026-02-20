@@ -1,6 +1,5 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { prisma } from "@/lib/db";
 import type { Role } from "@prisma/client";
 
 interface ExtendedUser {
@@ -25,6 +24,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         const username = credentials.username as string;
+
+        // Dynamic import to avoid Edge runtime issues
+        const { prisma } = await import("@/lib/db");
 
         const user = await prisma.user.findUnique({
           where: { username },

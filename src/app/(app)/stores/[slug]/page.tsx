@@ -1,5 +1,6 @@
 import { getStoreBySlug } from "@/lib/stores";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 // Force dynamic rendering - no static generation
 export const dynamic = "force-dynamic";
@@ -7,23 +8,14 @@ export const dynamic = "force-dynamic";
 export default async function StoreDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id: slug } = await params;
+  const { slug } = await params;
   
   const store = await getStoreBySlug(slug);
 
   if (!store) {
-    return (
-      <div className="max-w-4xl">
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900">Store not found</h1>
-          <Link href="/stores" className="text-blue-600 hover:underline mt-4 inline-block">
-            ← Back to Stores
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   const categoryLabels: Record<string, string> = {
@@ -75,7 +67,15 @@ export default async function StoreDetailPage({
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Certifications</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-gray-900">Certifications</h2>
+          <Link 
+            href={`/audits/new?store=${store.id}`}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Start Audit
+          </Link>
+        </div>
         {store.certifications.length === 0 ? (
           <p className="text-gray-500">No certifications found</p>
         ) : (
@@ -114,4 +114,3 @@ export default async function StoreDetailPage({
     </div>
   );
 }
-

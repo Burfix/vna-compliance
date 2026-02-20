@@ -1,35 +1,35 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { auth } from "@/auth";
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
+export default auth((req) => {
+  const { pathname } = req.nextUrl;
+
   // Public paths that don't require authentication
-  const publicPaths = ["/", "/login", "/api"];
-  
+  const publicPaths = [
+    "/",
+    "/login",
+    "/demo",
+    "/api/auth",
+    "/_next",
+    "/favicon.ico",
+  ];
+
   // Check if path is public
-  const isPublicPath = publicPaths.some(path => pathname.startsWith(path));
-  
+  const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
+
   if (isPublicPath) {
-    return NextResponse.next();
+    return; // Allow access
   }
-  
-  // Check if DEMO_MODE is enabled
-  const demoMode = process.env.DEMO_MODE === "true";
-  
-  // For protected paths, check for session token
-  // NextAuth v5 uses different cookie names in production vs development
-  const hasSession = request.cookies.has("authjs.session-token") ||
-                     request.cookies.has("__Secure-authjs.session-token");
-  
-  // Allow access if session exists OR if DEMO_MODE is enabled
-  if (!hasSession && !demoMode) {
-    const loginUrl = new URL("/login", request.url);
-    return NextResponse.redirect(loginUrl);
+
+  // For protected paths, check for authenticated user
+  if (!req.auth?.user) {
+    const loginUrl = new URL("/login", req.nextUrl.origin);
+    loginUrl.searchParams.set("next", pathname + req.nextUrl.search);
+    return Response.redirect(loginUrl);
   }
-  
-  return NextResponse.next();
-}
+
+  // User is authenticated, allow access
+  return;
+});
 
 export const config = {
   matcher: [
