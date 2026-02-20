@@ -5,6 +5,18 @@ import { prisma } from "@/lib/db";
 export async function GET() {
   const session = await auth();
   
+  let databaseConnected = false;
+  let storeCount = 0;
+  let certCount = 0;
+  
+  try {
+    storeCount = await prisma.store.count();
+    certCount = await prisma.certification.count();
+    databaseConnected = true;
+  } catch (error) {
+    console.error("Database connection failed:", error);
+  }
+  
   const diagnostics = {
     timestamp: new Date().toISOString(),
     environment: {
@@ -22,12 +34,13 @@ export async function GET() {
       } : null,
     },
     database: {
-      storeCount: await prisma.store.count(),
-      userCount: await prisma.user.count(),
-      auditCount: await prisma.audit.count(),
+      databaseConnected,
+      storeCount,
+      certCount,
+      userCount: databaseConnected ? await prisma.user.count() : 0,
+      auditCount: databaseConnected ? await prisma.audit.count() : 0,
     },
     cookies: {
-      // This will be empty in API route, but helps debug
       sessionCookieExpected: ["authjs.session-token", "__Secure-authjs.session-token"],
     },
   };

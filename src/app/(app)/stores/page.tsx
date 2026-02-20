@@ -1,10 +1,8 @@
-import { getTenantManagementData } from "./actions";
+import { getStores } from "@/lib/stores";
 import StoresClient from "./StoresClient";
-import { getEnv } from "@/lib/env";
 
 export default async function StoresPage() {
-  const env = getEnv();
-  const data = await getTenantManagementData();
+  const stores = await getStores();
   
-  return <StoresClient initialData={data} isMockMode={env.MOCK_MODE} />;
+  return <StoresClient stores={stores} />;
 }

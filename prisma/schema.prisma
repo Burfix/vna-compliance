@@ -59,12 +59,15 @@ model User {
 
 model Store {
   id        String   @id @default(cuid())
+  code      String   @unique // e.g., "SD-101", "VW-201"
+  slug      String   @unique // e.g., "tenant-sd-101"
   name      String
-  unitCode  String   // e.g., "W-123", "SM-45"
+  unitCode  String   // Legacy field, same as code
   precinct  String   // Victoria Wharf, Silo District, etc.
   category  Category // F&B, Retail, Services
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   audits          Audit[]
   certifications  Certification[]
@@ -101,19 +104,21 @@ model Audit {
 }
 
 model Certification {
-  id          String              @id @default(cuid())
+  id          String    @id @default(cuid())
   storeId     String
-  name        String
-  type        CertificationType
-  expiryDate  DateTime
-  isMandatory Boolean             @default(false)
-  issuedDate  DateTime?
-  issuer      String?
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
-  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  type        String    // Fire Safety, COC, etc.
+  status      String    // VALID | EXPIRED | PENDING | MISSING
+  issuedAt    DateTime?
+  expiresAt   DateTime?
+  referenceNo String?
+  notes       String?
 
-  @@unique([storeId, name])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([storeId])
+  @@index([type])
   @@map("certifications")
 }
