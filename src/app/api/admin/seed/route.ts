@@ -143,10 +143,19 @@ export async function GET() {
     });
 
     // Count records
+    let certificationCount = 0;
+    if (certificationsTableExists) {
+      try {
+        certificationCount = await prisma.certification.count();
+      } catch {
+        // Table might have been dropped - ignore
+      }
+    }
+    
     const counts = {
       users: await prisma.user.count(),
       stores: await prisma.store.count(),
-      certifications: certificationsTableExists ? await prisma.certification.count() : 0,
+      certifications: certificationCount,
       templates: await prisma.auditTemplate.count(),
       audits: await prisma.audit.count(),
     };
