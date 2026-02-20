@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getEnv } from "@/lib/env";
+import { demoLogin } from "./actions";
 
 export default function HomePage() {
   const env = getEnv();
@@ -22,13 +23,7 @@ export default function HomePage() {
                 🧪 Demo Mode Active
               </p>
               <div className="space-y-3">
-                <form action="/api/auth/signin/credentials" method="post">
-                  <input type="hidden" name="email" value="manager@demo.com" />
-                  <input
-                    type="hidden"
-                    name="callbackUrl"
-                    value="/dashboard"
-                  />
+                <form action={demoLogin.bind(null, "sarah")}>
                   <button
                     type="submit"
                     className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition"
@@ -36,13 +31,7 @@ export default function HomePage() {
                     Login as Manager (ADMIN)
                   </button>
                 </form>
-                <form action="/api/auth/signin/credentials" method="post">
-                  <input type="hidden" name="email" value="officer@demo.com" />
-                  <input
-                    type="hidden"
-                    name="callbackUrl"
-                    value="/dashboard"
-                  />
+                <form action={demoLogin.bind(null, "john")}>
                   <button
                     type="submit"
                     className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
