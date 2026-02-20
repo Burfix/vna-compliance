@@ -15,8 +15,9 @@ export function middleware(request: NextRequest) {
   }
   
   // For protected paths, check for session token
-  const hasSession = request.cookies.has("__Secure-authjs.session-token") ||
-                     request.cookies.has("authjs.session-token");
+  // NextAuth v5 uses different cookie names in production vs development
+  const hasSession = request.cookies.has("authjs.session-token") ||
+                     request.cookies.has("__Secure-authjs.session-token");
   
   if (!hasSession) {
     const loginUrl = new URL("/login", request.url);
