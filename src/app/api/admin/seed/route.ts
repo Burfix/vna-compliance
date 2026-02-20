@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import type { CertificationType } from "@prisma/client";
 
 export async function GET() {
   try {
@@ -59,11 +60,11 @@ export async function GET() {
     const stores = await prisma.store.findMany();
     
     const certificationTypes = [
-      { type: "FIRE", name: "Fire Safety Certificate", issuer: "Cape Town Fire Department", mandatory: true },
-      { type: "INSURANCE", name: "Public Liability Insurance", issuer: "Santam Insurance", mandatory: true },
-      { type: "ELECTRICAL", name: "Electrical Compliance Certificate", issuer: "Certified Electricians SA", mandatory: false },
-      { type: "OHS", name: "Occupational Health & Safety Compliance", issuer: "Department of Labour", mandatory: true },
-      { type: "GAS", name: "Gas Safety Certificate", issuer: "SA Gas Safety", mandatory: false },
+      { type: "FIRE" as CertificationType, name: "Fire Safety Certificate", issuer: "Cape Town Fire Department", mandatory: true },
+      { type: "INSURANCE" as CertificationType, name: "Public Liability Insurance", issuer: "Santam Insurance", mandatory: true },
+      { type: "ELECTRICAL" as CertificationType, name: "Electrical Compliance Certificate", issuer: "Certified Electricians SA", mandatory: false },
+      { type: "OHS" as CertificationType, name: "Occupational Health & Safety Compliance", issuer: "Department of Labour", mandatory: true },
+      { type: "GAS" as CertificationType, name: "Gas Safety Certificate", issuer: "SA Gas Safety", mandatory: false },
     ];
 
     let totalCertsCreated = 0;
@@ -73,7 +74,7 @@ export async function GET() {
       const certs = [...certificationTypes];
       if (store.category === "FB") {
         certs.push({
-          type: "FOOD_SAFETY",
+          type: "FOOD_SAFETY" as CertificationType,
           name: "Food Safety Certificate",
           issuer: "Department of Health",
           mandatory: true,
