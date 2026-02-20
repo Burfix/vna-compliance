@@ -1,31 +1,27 @@
 import NextAuth from "next-auth";
+import type { User } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import type { Role } from "@prisma/client";
+import { authConfig } from "./auth.config";
 
-interface ExtendedUser {
-  id: string;
-  username: string;
-  name: string | null;
-  role: Role;
-}
-
+/**
+ * Full auth config — extends authConfig with the Prisma-backed
+ * authorize callback. This runs server-side only (NOT in Edge middleware).
+ */
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  trustHost: true,
-  secret: process.env.AUTH_SECRET,
-  basePath: "/api/auth",
+  ...authConfig,
   providers: [
     Credentials({
       credentials: {
         username: { label: "Username", type: "text" },
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<User | null> {
         if (!credentials?.username) {
           return null;
         }
 
         const username = credentials.username as string;
 
-        // Dynamic import to avoid Edge runtime issues
+        // Dynamic import — only runs server-side during sign-in
         const { prisma } = await import("@/lib/db");
 
         const user = await prisma.user.findUnique({
@@ -41,33 +37,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           username: user.username,
           name: user.name,
           role: user.role,
-        };
+        } as User;
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
-  },
-  pages: {
-    signIn: "/login",
-  },
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        const extendedUser = user as ExtendedUser;
-        token.id = extendedUser.id;
-        token.username = extendedUser.username;
-        token.role = extendedUser.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.username = token.username as string;
-        session.user.role = token.role as Role;
-      }
-      return session;
-    },
-  },
 });

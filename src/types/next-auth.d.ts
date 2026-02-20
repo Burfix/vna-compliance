@@ -1,5 +1,8 @@
 import { DefaultSession } from "next-auth";
-import { Role } from "@prisma/client";
+
+// Use string union instead of importing Role from @prisma/client
+// to avoid pulling Prisma into the Edge Function bundle.
+type Role = "ADMIN" | "OFFICER";
 
 declare module "next-auth" {
   interface Session {
