@@ -59,57 +59,73 @@ export async function GET() {
 
     const stores = await prisma.store.findMany();
     
-    const certificationTypes = [
-      { type: "FIRE" as CertificationType, name: "Fire Safety Certificate", issuer: "Cape Town Fire Department", mandatory: true },
-      { type: "INSURANCE" as CertificationType, name: "Public Liability Insurance", issuer: "Santam Insurance", mandatory: true },
-      { type: "ELECTRICAL" as CertificationType, name: "Electrical Compliance Certificate", issuer: "Certified Electricians SA", mandatory: false },
-      { type: "OHS" as CertificationType, name: "Occupational Health & Safety Compliance", issuer: "Department of Labour", mandatory: true },
-      { type: "GAS" as CertificationType, name: "Gas Safety Certificate", issuer: "SA Gas Safety", mandatory: false },
-    ];
+    // Check if certifications table exists
+    let certificationsTableExists = false;
+    let existingCertsCount = 0;
+    
+    try {
+      existingCertsCount = await prisma.certification.count();
+      certificationsTableExists = true;
+    } catch (error) {
+      console.log("⚠️  Certifications table doesn't exist yet - skipping certification seeding");
+      console.log("   Run database migration first: npx prisma migrate deploy");
+    }
 
     let totalCertsCreated = 0;
 
-    for (const store of stores) {
-      // Food & Beverage stores get additional certification
-      const certs = [...certificationTypes];
-      if (store.category === "FB") {
-        certs.push({
-          type: "FOOD_SAFETY" as CertificationType,
-          name: "Food Safety Certificate",
-          issuer: "Department of Health",
-          mandatory: true,
-        });
-      }
+    if (certificationsTableExists) {
+      const certificationTypes = [
+        { type: "FIRE" as CertificationType, name: "Fire Safety Certificate", issuer: "Cape Town Fire Department", mandatory: true },
+        { type: "INSURANCE" as CertificationType, name: "Public Liability Insurance", issuer: "Santam Insurance", mandatory: true },
+        { type: "ELECTRICAL" as CertificationType, name: "Electrical Compliance Certificate", issuer: "Certified Electricians SA", mandatory: false },
+        { type: "OHS" as CertificationType, name: "Occupational Health & Safety Compliance", issuer: "Department of Labour", mandatory: true },
+        { type: "GAS" as CertificationType, name: "Gas Safety Certificate", issuer: "SA Gas Safety", mandatory: false },
+      ];
 
-      for (const cert of certs) {
-        // Randomize expiry dates: -50 to 350 days from now
-        const randomDays = Math.floor(Math.random() * 400) - 50;
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + randomDays);
+      for (const store of stores) {
+        // Food & Beverage stores get additional certification
+        const certs = [...certificationTypes];
+        if (store.category === "FB") {
+          certs.push({
+            type: "FOOD_SAFETY" as CertificationType,
+            name: "Food Safety Certificate",
+            issuer: "Department of Health",
+            mandatory: true,
+          });
+        }
 
-        try {
-          await prisma.certification.upsert({
-            where: {
-              storeId_name: {
+        for (const cert of certs) {
+          // Randomize expiry dates: -50 to 350 days from now
+          const randomDays = Math.floor(Math.random() * 400) - 50;
+          const expiryDate = new Date();
+          expiryDate.setDate(expiryDate.getDate() + randomDays);
+
+          try {
+            await prisma.certification.upsert({
+              where: {
+                storeId_name: {
+                  storeId: store.id,
+                  name: cert.name,
+                },
+              },
+              update: {},
+              create: {
                 storeId: store.id,
                 name: cert.name,
+                type: cert.type,
+                expiryDate,
+                isMandatory: cert.mandatory,
+                issuer: cert.issuer,
               },
-            },
-            update: {},
-            create: {
-              storeId: store.id,
-              name: cert.name,
-              type: cert.type,
-              expiryDate,
-              isMandatory: cert.mandatory,
-              issuer: cert.issuer,
-            },
-          });
-          totalCertsCreated++;
-        } catch (error) {
-          console.error(`Failed to create ${cert.name} for ${store.name}`);
+            });
+            totalCertsCreated++;
+          } catch (error) {
+            console.error(`Failed to create ${cert.name} for ${store.name}`);
+          }
         }
       }
+
+      console.log(`✅ Created ${totalCertsCreated} certifications`);
     }
 
     console.log(`✅ Created ${totalCertsCreated} certifications`);
@@ -130,17 +146,20 @@ export async function GET() {
     const counts = {
       users: await prisma.user.count(),
       stores: await prisma.store.count(),
-      certifications: await prisma.certification.count(),
+      certifications: certificationsTableExists ? await prisma.certification.count() : 0,
       templates: await prisma.auditTemplate.count(),
       audits: await prisma.audit.count(),
     };
 
     return NextResponse.json({
       success: true,
-      message: "Database seeded successfully",
+      message: certificationsTableExists 
+        ? "Database seeded successfully with certifications" 
+        : "Database seeded successfully (certifications table not yet migrated)",
       created: {
         users: [manager.username, officer.username],
         stores: [store1.name, store2.name],
+        certifications: certificationsTableExists ? totalCertsCreated : "skipped - table not migrated",
         templates: [template.name],
       },
       counts,
