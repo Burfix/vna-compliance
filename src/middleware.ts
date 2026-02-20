@@ -14,12 +14,16 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   
+  // Check if DEMO_MODE is enabled
+  const demoMode = process.env.DEMO_MODE === "true";
+  
   // For protected paths, check for session token
   // NextAuth v5 uses different cookie names in production vs development
   const hasSession = request.cookies.has("authjs.session-token") ||
                      request.cookies.has("__Secure-authjs.session-token");
   
-  if (!hasSession) {
+  // Allow access if session exists OR if DEMO_MODE is enabled
+  if (!hasSession && !demoMode) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }

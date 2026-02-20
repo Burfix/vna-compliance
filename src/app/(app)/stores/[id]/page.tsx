@@ -5,6 +5,9 @@ import Link from "next/link";
 import { mockStores } from "@/lib/mock";
 import type { StoreDetailData, CertificationData } from "./actions";
 
+// Force dynamic rendering - no static generation
+export const dynamic = "force-dynamic";
+
 export default async function StoreDetailPage({
   params,
 }: {
@@ -12,6 +15,8 @@ export default async function StoreDetailPage({
 }) {
   const { id } = await params;
   const env = getEnv();
+
+  console.log(`[StoreDetailPage] id=${id}, MOCK_MODE=${env.MOCK_MODE}`);
 
   let storeData: StoreDetailData | null;
 
