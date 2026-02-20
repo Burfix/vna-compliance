@@ -63,6 +63,66 @@ export async function GET() {
       },
     });
 
+    // Seed certifications for all stores
+    console.log("🌱 Seeding certifications...");
+
+    const stores = await prisma.store.findMany();
+    
+    const certificationTypes = [
+      { type: "FIRE", name: "Fire Safety Certificate", issuer: "Cape Town Fire Department", mandatory: true },
+      { type: "INSURANCE", name: "Public Liability Insurance", issuer: "Santam Insurance", mandatory: true },
+      { type: "ELECTRICAL", name: "Electrical Compliance Certificate", issuer: "Certified Electricians SA", mandatory: false },
+      { type: "OHS", name: "Occupational Health & Safety Compliance", issuer: "Department of Labour", mandatory: true },
+      { type: "GAS", name: "Gas Safety Certificate", issuer: "SA Gas Safety", mandatory: false },
+    ];
+
+    let totalCertsCreated = 0;
+
+    for (const store of stores) {
+      // Food & Beverage stores get additional certification
+      const certs = [...certificationTypes];
+      if (store.category === "FB") {
+        certs.push({
+          type: "FOOD_SAFETY",
+          name: "Food Safety Certificate",
+          issuer: "Department of Health",
+          mandatory: true,
+        });
+      }
+
+      for (const cert of certs) {
+        // Randomize expiry dates: -50 to 350 days from now
+        const randomDays = Math.floor(Math.random() * 400) - 50;
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + randomDays);
+
+        try {
+          await prisma.certification.upsert({
+            where: {
+              storeId_name: {
+                storeId: store.id,
+                name: cert.name,
+              },
+            },
+            update: {},
+            create: {
+              storeId: store.id,
+              name: cert.name,
+              type: cert.type,
+              expiryDate,
+              isMandatory: cert.mandatory,
+              issuer: cert.issuer,
+            },
+          });
+          totalCertsCreated++;
+        } catch (error) {
+          console.error(`Failed to create ${cert.name} for ${store.name}`);
+        }
+      }
+    }
+
+    console.log(`✅ Created ${totalCertsCreated} certifications`);
+
     // Create audit template
     const template = await prisma.auditTemplate.upsert({
       where: { id: "template-standard-001" },
@@ -79,6 +139,7 @@ export async function GET() {
     const counts = {
       users: await prisma.user.count(),
       stores: await prisma.store.count(),
+      certifications: await prisma.certification.count(),
       templates: await prisma.auditTemplate.count(),
       audits: await prisma.audit.count(),
     };

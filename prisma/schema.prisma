@@ -114,5 +114,6 @@ model Certification {
 
   store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
+  @@unique([storeId, name])
   @@map("certifications")
 }
