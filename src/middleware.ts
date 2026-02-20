@@ -12,6 +12,7 @@ export default auth((req) => {
     "/_next",
     "/favicon.ico",
     "/zz-debug",
+    "/deploy-proof",
   ];
 
   // Exact match for root, prefix match for everything else
