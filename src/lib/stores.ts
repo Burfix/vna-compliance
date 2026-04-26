@@ -37,7 +37,7 @@ export interface StoreDetail {
   precinct: string;
   category: string;
   unitCode: string;
-  certifications: Certification[];
+  certificates: Certification[];
 }
 
 export interface Certification {
@@ -61,7 +61,7 @@ export async function getStores(): Promise<StoreWithCompliance[]> {
   const stores = await prisma.store.findMany({
     where: { active: true },
     include: {
-      certifications: true,
+      certificates: true,
     },
     orderBy: { name: "asc" },
   });
@@ -70,26 +70,26 @@ export async function getStores(): Promise<StoreWithCompliance[]> {
     const requiredCerts =
       store.category === "FB" ? REQUIRED_CERTS_FB : REQUIRED_CERTS_BASE;
 
-    const validCount = store.certifications.filter(
-      (c) => c.status === "VALID" && !isExpiringSoon(c.expiresAt)
+    const validCount = store.certificates.filter(
+      (c) => c.status === "APPROVED" && !isExpiringSoon(c.expiresAt)
     ).length;
 
-    const expiredCount = store.certifications.filter(
+    const expiredCount = store.certificates.filter(
       (c) => c.status === "EXPIRED"
     ).length;
 
-    const expiringSoonCount = store.certifications.filter(
-      (c) => c.status === "VALID" && isExpiringSoon(c.expiresAt)
+    const expiringSoonCount = store.certificates.filter(
+      (c) => c.status === "APPROVED" && isExpiringSoon(c.expiresAt)
     ).length;
 
-    const missingCount = store.certifications.filter(
+    const missingCount = store.certificates.filter(
       (c) => c.status === "MISSING"
     ).length;
 
     // Count how many required certs are valid
     const validRequired = requiredCerts.filter((reqCert) => {
-      const cert = store.certifications.find((c) => c.type === reqCert);
-      return cert && cert.status === "VALID" && !isExpiringSoon(cert.expiresAt);
+      const cert = store.certificates.find((c) => c.typeName === reqCert);
+      return cert && cert.status === "APPROVED" && !isExpiringSoon(cert.expiresAt);
     }).length;
 
     const complianceScore = Math.round(
@@ -119,7 +119,7 @@ export async function getStoreBySlug(
   const store = await prisma.store.findUnique({
     where: { slug },
     include: {
-      certifications: {
+      certificates: {
         orderBy: { expiresAt: "asc" },
       },
     },
@@ -135,9 +135,9 @@ export async function getStoreBySlug(
     precinct: store.precinct,
     category: store.category,
     unitCode: store.unitCode,
-    certifications: store.certifications.map((c) => ({
+    certificates: store.certificates.map((c) => ({
       id: c.id,
-      type: c.type,
+      type: c.typeName,
       status: c.status,
       issuedAt: c.issuedAt,
       expiresAt: c.expiresAt,
@@ -153,7 +153,7 @@ export async function getStoreById(
   const store = await prisma.store.findUnique({
     where: { id },
     include: {
-      certifications: {
+      certificates: {
         orderBy: { expiresAt: "asc" },
       },
     },
@@ -169,9 +169,9 @@ export async function getStoreById(
     precinct: store.precinct,
     category: store.category,
     unitCode: store.unitCode,
-    certifications: store.certifications.map((c) => ({
+    certificates: store.certificates.map((c) => ({
       id: c.id,
-      type: c.type,
+      type: c.typeName,
       status: c.status,
       issuedAt: c.issuedAt,
       expiresAt: c.expiresAt,

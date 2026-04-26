@@ -11,9 +11,13 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ── Enums ─────────────────────────────────────────────────────────────────────
+
 enum Role {
-  ADMIN
-  OFFICER
+  ADMIN      // Full platform control
+  OFFICER    // Compliance officer
+  EXECUTIVE  // Read-only summary access
+  TENANT     // Scoped to their own store
 }
 
 enum Category {
@@ -27,22 +31,34 @@ enum AuditStatus {
   SUBMITTED
 }
 
-enum CertificationType {
-  FIRE
-  ELECTRICAL
-  GAS
-  OHS
-  INSURANCE
-  FOOD_SAFETY
-  LIQUOR_LICENSE
-  OTHER
+enum DocumentStatus {
+  MISSING              // Not yet uploaded
+  AWAITING_REVIEW      // Uploaded, pending officer review
+  APPROVED             // Reviewed and currently valid
+  REJECTED             // Requires resubmission
+  EXPIRED              // Past expiry date
+  EXPIRING_SOON        // Within 30 days of expiry
 }
 
-enum CertificationStatus {
-  VALID
-  EXPIRING_SOON
-  EXPIRED
+enum ReviewDecision {
+  APPROVED
+  REJECTED
+  REQUEST_RESUBMISSION
 }
+
+enum AuditEventType {
+  DOCUMENT_UPLOADED
+  DOCUMENT_APPROVED
+  DOCUMENT_REJECTED
+  DOCUMENT_RESUBMISSION_REQUESTED
+  DOCUMENT_EXPIRED
+  NOTIFICATION_SENT
+  OFFICER_COMMENT_ADDED
+  REQUIREMENT_ADDED
+  REQUIREMENT_REMOVED
+}
+
+// ── Core Models ───────────────────────────────────────────────────────────────
 
 model User {
   id        String   @id @default(cuid())
@@ -50,30 +66,155 @@ model User {
   name      String?
   role      Role
   active    Boolean  @default(true)
-  createdAt    DateTime @default(now())
+  storeId   String?  // Only set for TENANT role — enforces tenant isolation
+  createdAt DateTime @default(now())
 
+  store           Store?                 @relation(fields: [storeId], references: [id])
   conductedAudits Audit[]
+  reviews         CertificateReview[]
+  auditEvents     ComplianceAuditEvent[]
 
   @@map("users")
 }
 
 model Store {
   id        String   @id @default(cuid())
-  code      String   @unique // e.g., "SD-101", "VW-201"
-  slug      String   @unique // e.g., "tenant-sd-101"
+  code      String   @unique
+  slug      String   @unique
   name      String
-  unitCode  String   // Legacy field, same as code
-  precinct  String   // Victoria Wharf, Silo District, etc.
-  category  Category // F&B, Retail, Services
+  unitCode  String
+  precinct  String
+  category  Category
   active    Boolean  @default(true)
+  riskLevel String   @default("low") // low | medium | high — cached computed value
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  audits          Audit[]
-  certifications  Certification[]
+  users          User[]
+  audits         Audit[]
+  certificates   Certificate[]
+  requirements   CertificateTypeRequirement[]
+  notifications  ComplianceNotification[]
 
   @@map("stores")
 }
+
+// ── Certificate Type Registry ──────────────────────────────────────────────────
+
+model CertificateType {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  description     String?
+  defaultRequired Boolean  @default(true)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  requirements CertificateTypeRequirement[]
+  certificates Certificate[]
+
+  @@map("certificate_types")
+}
+
+model CertificateTypeRequirement {
+  id                String  @id @default(cuid())
+  storeId           String
+  certificateTypeId String
+  required          Boolean @default(true)
+
+  store           Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  certificateType CertificateType @relation(fields: [certificateTypeId], references: [id])
+
+  @@unique([storeId, certificateTypeId])
+  @@map("certificate_type_requirements")
+}
+
+// ── Certificate Documents ─────────────────────────────────────────────────────
+
+model Certificate {
+  id                String         @id @default(cuid())
+  storeId           String
+  certificateTypeId String?
+  typeName          String         // Denormalised for display + legacy flexibility
+
+  fileKey           String?        // Storage key — never exposed directly to clients
+  fileName          String?
+  fileSize          Int?
+
+  status            DocumentStatus @default(MISSING)
+  referenceNo       String?
+  issuedAt          DateTime?
+  expiresAt         DateTime?
+  notes             String?
+
+  uploadedAt        DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  store           Store             @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  certificateType CertificateType?  @relation(fields: [certificateTypeId], references: [id])
+  reviews         CertificateReview[]
+  auditEvents     ComplianceAuditEvent[]
+
+  @@index([storeId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("certificates")
+}
+
+model CertificateReview {
+  id            String         @id @default(cuid())
+  certificateId String
+  reviewedById  String
+  decision      ReviewDecision
+  comment       String?
+  createdAt     DateTime       @default(now())
+
+  certificate Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
+  reviewedBy  User        @relation(fields: [reviewedById], references: [id])
+
+  @@index([certificateId])
+  @@map("certificate_reviews")
+}
+
+// ── Compliance Audit Trail ────────────────────────────────────────────────────
+
+model ComplianceAuditEvent {
+  id            String         @id @default(cuid())
+  eventType     AuditEventType
+  storeId       String?
+  certificateId String?
+  actorId       String?
+  actorName     String?        // Denormalised — preserved even if user is deleted
+  details       Json?
+  createdAt     DateTime       @default(now())
+
+  certificate Certificate? @relation(fields: [certificateId], references: [id])
+  actor       User?        @relation(fields: [actorId], references: [id])
+
+  @@index([storeId])
+  @@index([certificateId])
+  @@index([createdAt])
+  @@map("compliance_audit_events")
+}
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+model ComplianceNotification {
+  id      String    @id @default(cuid())
+  storeId String
+  type    String    // expiry_warning | document_rejected | review_complete | action_required
+  subject String
+  message String
+  sentAt  DateTime  @default(now())
+  readAt  DateTime?
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+  @@map("compliance_notifications")
+}
+
+// ── Legacy / Audit Module (kept for backward compat) ─────────────────────────
 
 model AuditTemplate {
   id          String   @id @default(cuid())
@@ -101,24 +242,4 @@ model Audit {
   conductedBy User          @relation(fields: [conductedById], references: [id])
 
   @@map("audits")
-}
-
-model Certification {
-  id          String    @id @default(cuid())
-  storeId     String
-  store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
-
-  type        String    // Fire Safety, COC, etc.
-  status      String    // VALID | EXPIRED | PENDING | MISSING
-  issuedAt    DateTime?
-  expiresAt   DateTime?
-  referenceNo String?
-  notes       String?
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([storeId])
-  @@index([type])
-  @@map("certifications")
 }

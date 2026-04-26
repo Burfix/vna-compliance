@@ -50,10 +50,11 @@ function randomDate(minDays: number, maxDays: number): Date {
 function generateCertifications(storeId: string, category: string) {
   const certs: Array<{
     storeId: string;
-    type: string;
+    typeName: string;
     status: string;
     issuedAt: Date | null;
     expiresAt: Date | null;
+    uploadedAt: Date | null;
     referenceNo: string | null;
     notes: string | null;
   }> = [];
@@ -78,35 +79,41 @@ function generateCertifications(storeId: string, category: string) {
     let status: string;
     let issuedAt: Date | null;
     let expiresAt: Date | null;
+    let uploadedAt: Date | null;
     
     if (rand < 0.5) {
-      // 50% valid (expires 60-360 days from now)
-      status = "VALID";
+      // 50% approved (expires 60-360 days from now)
+      status = "APPROVED";
       issuedAt = randomDate(-365, -60);
       expiresAt = randomDate(60, 360);
+      uploadedAt = issuedAt;
     } else if (rand < 0.7) {
       // 20% expiring soon (expires 1-30 days)
-      status = "VALID";
+      status = "EXPIRING_SOON";
       issuedAt = randomDate(-365, -60);
       expiresAt = randomDate(1, 30);
+      uploadedAt = issuedAt;
     } else if (rand < 0.9) {
       // 20% expired (expired 1-180 days ago)
       status = "EXPIRED";
       issuedAt = randomDate(-545, -180);
       expiresAt = randomDate(-180, -1);
+      uploadedAt = issuedAt;
     } else {
       // 10% missing
       status = "MISSING";
       issuedAt = null;
       expiresAt = null;
+      uploadedAt = null;
     }
     
     certs.push({
       storeId,
-      type,
+      typeName: type,
       status,
       issuedAt,
       expiresAt,
+      uploadedAt,
       referenceNo: status !== "MISSING" ? `REF-${Math.random().toString(36).substring(2, 10).toUpperCase()}` : null,
       notes: null,
     });
@@ -154,8 +161,8 @@ async function main() {
     const certs = generateCertifications(store.id, store.category);
     
     for (const cert of certs) {
-      await prisma.certification.create({
-        data: cert,
+      await prisma.certificate.create({
+        data: cert as Parameters<typeof prisma.certificate.create>[0]["data"],
       });
       certCount++;
     }

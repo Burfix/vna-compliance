@@ -18,7 +18,7 @@ export async function GET(
 
     const store = await prisma.store.findUnique({
       where: { id },
-      include: { certifications: { take: 2 } },
+      include: { certificates: { take: 2 } },
     });
 
     if (!store) {
@@ -48,7 +48,7 @@ export async function GET(
         name: store.name,
         precinct: store.precinct,
         category: store.category,
-        certCount: store.certifications.length,
+        certCount: store.certificates.length,
       },
       sha: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local",
     });

@@ -29,20 +29,35 @@ export default async function AppLayout({
   // If no user in production, the content won't render anyway
   const displayUser = user || { name: "User", role: "USER" as const };
 
+  const isOfficer = displayUser.role === "ADMIN" || displayUser.role === "OFFICER";
+  const isTenant = displayUser.role === "TENANT";
+  const isExec = displayUser.role === "EXECUTIVE" || displayUser.role === "ADMIN";
+
   const navigation = [
-    { name: "Dashboard", href: "/dashboard", icon: "📊" },
-    ...(displayUser.role === "ADMIN"
+    ...(isTenant
+      ? [{ name: "My Documents", href: "/portal", icon: "📁" }]
+      : [{ name: "Dashboard", href: "/dashboard", icon: "📊" }]),
+    ...(isExec
       ? [{ name: "Executive", href: "/exec", icon: "🏛️" }]
       : []),
-    { name: "Audits", href: "/audits", icon: "📋" },
-    { name: "Tenants", href: "/stores", icon: "🏪" },
+    ...(isOfficer
+      ? [
+          { name: "Review Queue", href: "/review-queue", icon: "🔍" },
+          { name: "Risk Radar", href: "/risk-radar", icon: "🚨" },
+          { name: "Audits", href: "/audits", icon: "📋" },
+          { name: "Tenants", href: "/stores", icon: "🏪" },
+          { name: "Audit Trail", href: "/audit-trail", icon: "📜" },
+        ]
+      : []),
     { name: "Settings", href: "/settings", icon: "⚙️" },
   ];
 
   const getRoleBadgeColor = (role: string) => {
-    return role === "ADMIN" 
-      ? "bg-purple-100 text-purple-800 border-purple-200" 
-      : "bg-blue-100 text-blue-800 border-blue-200";
+    if (role === "ADMIN") return "bg-purple-100 text-purple-800 border-purple-200";
+    if (role === "OFFICER") return "bg-blue-100 text-blue-800 border-blue-200";
+    if (role === "EXECUTIVE") return "bg-indigo-100 text-indigo-800 border-indigo-200";
+    if (role === "TENANT") return "bg-green-100 text-green-800 border-green-200";
+    return "bg-gray-100 text-gray-800 border-gray-200";
   };
 
   return (

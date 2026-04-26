@@ -29,19 +29,21 @@ export const authConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        const u = user as unknown as { id: string; username: string; role: string };
+        const u = user as unknown as { id: string; username: string; role: string; storeId?: string | null };
         token.id = u.id;
         token.username = u.username;
         token.role = u.role;
+        token.storeId = u.storeId ?? null;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        const s = session.user as unknown as { id: string; username: string; role: string };
+        const s = session.user as unknown as { id: string; username: string; role: string; storeId?: string | null };
         s.id = token.id as string;
         s.username = token.username as string;
         s.role = token.role as string;
+        s.storeId = (token.storeId as string | null) ?? null;
       }
       return session;
     },

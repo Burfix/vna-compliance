@@ -146,7 +146,7 @@ export async function getFilteredStores(
 ): Promise<{ stores: StoreWithCompliance[]; totalBeforeFilter: number }> {
   const stores = await prisma.store.findMany({
     where: { active: true },
-    include: { certifications: true },
+    include: { certificates: true },
     orderBy: { name: "asc" },
   });
 
@@ -158,21 +158,21 @@ export async function getFilteredStores(
     const requiredCerts =
       store.category === "FB" ? REQUIRED_CERTS_FB : REQUIRED_CERTS_BASE;
 
-    const expiredCount = store.certifications.filter(
+    const expiredCount = store.certificates.filter(
       (c) => c.status === "EXPIRED"
     ).length;
 
-    const expiringSoonCount = store.certifications.filter(
-      (c) => c.status === "VALID" && isExpiringSoon(c.expiresAt)
+    const expiringSoonCount = store.certificates.filter(
+      (c) => c.status === "APPROVED" && isExpiringSoon(c.expiresAt)
     ).length;
 
-    const missingCount = store.certifications.filter(
+    const missingCount = store.certificates.filter(
       (c) => c.status === "MISSING"
     ).length;
 
     const validRequired = requiredCerts.filter((reqCert) => {
-      const cert = store.certifications.find((c) => c.type === reqCert);
-      return cert && cert.status === "VALID" && !isExpiringSoon(cert.expiresAt);
+      const cert = store.certificates.find((c) => c.typeName === reqCert);
+      return cert && cert.status === "APPROVED" && !isExpiringSoon(cert.expiresAt);
     }).length;
 
     const complianceScore = requiredCerts.length > 0
@@ -190,8 +190,8 @@ export async function getFilteredStores(
       category: store.category,
       unitCode: store.unitCode,
       complianceScore,
-      validCount: store.certifications.filter(
-        (c) => c.status === "VALID" && !isExpiringSoon(c.expiresAt)
+      validCount: store.certificates.filter(
+        (c) => c.status === "APPROVED" && !isExpiringSoon(c.expiresAt)
       ).length,
       expiredCount,
       expiringSoonCount,

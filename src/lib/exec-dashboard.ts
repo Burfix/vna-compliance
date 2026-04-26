@@ -181,7 +181,7 @@ export async function getExecDashboardPayload(
   /* ── single efficient query ─────────────────────────── */
   const stores = await prisma.store.findMany({
     where: { active: true },
-    include: { certifications: true },
+    include: { certificates: true },
   });
 
   const now = new Date();
@@ -194,17 +194,17 @@ export async function getExecDashboardPayload(
     const requiredCerts =
       store.category === "FB" ? REQUIRED_CERTS_FB : REQUIRED_CERTS_BASE;
 
-    const expiredCount = store.certifications.filter(
+    const expiredCount = store.certificates.filter(
       (c) => c.status === "EXPIRED",
     ).length;
 
-    const expiringSoonCount = store.certifications.filter(
-      (c) => c.status === "VALID" && isExpiringSoon(c.expiresAt),
+    const expiringSoonCount = store.certificates.filter(
+      (c) => c.status === "APPROVED" && isExpiringSoon(c.expiresAt),
     ).length;
 
     const validRequired = requiredCerts.filter((req) => {
-      const cert = store.certifications.find((c) => c.type === req);
-      return cert && cert.status === "VALID" && !isExpiringSoon(cert.expiresAt);
+      const cert = store.certificates.find((c) => c.typeName === req);
+      return cert && cert.status === "APPROVED" && !isExpiringSoon(cert.expiresAt);
     }).length;
 
     const complianceScore =
@@ -224,7 +224,7 @@ export async function getExecDashboardPayload(
       riskLevel,
       expiredCount,
       expiringSoonCount,
-      certifications: store.certifications,
+      certifications: store.certificates, // key kept for backward compat with TopRiskStores
     };
   });
 
@@ -265,7 +265,7 @@ export async function getExecDashboardPayload(
           storeId: s.id,
           storeName: s.name,
           precinct: s.precinct,
-          certType: c.type,
+      certtype: c.typeName,
           expiresAt: c.expiresAt!.toISOString(),
           status: c.status,
           _ts: c.expiresAt!.getTime(),
@@ -278,7 +278,7 @@ export async function getExecDashboardPayload(
       storeId: c.storeId,
       storeName: c.storeName,
       precinct: c.precinct,
-      certType: c.certType,
+      certType: c.certtype,
       expiresAt: c.expiresAt,
       status: c.status,
     }));

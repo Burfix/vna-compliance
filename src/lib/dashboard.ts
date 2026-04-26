@@ -84,7 +84,7 @@ export async function getDashboardPayload(): Promise<DashboardPayload> {
   const stores = await prisma.store.findMany({
     where: { active: true },
     include: {
-      certifications: true,
+      certificates: true,
     },
   });
 
@@ -93,22 +93,22 @@ export async function getDashboardPayload(): Promise<DashboardPayload> {
     const requiredCerts =
       store.category === "FB" ? REQUIRED_CERTS_FB : REQUIRED_CERTS_BASE;
 
-    const expiredCount = store.certifications.filter(
+    const expiredCount = store.certificates.filter(
       (c) => c.status === "EXPIRED"
     ).length;
 
-    const expiringSoonCount = store.certifications.filter(
-      (c) => c.status === "VALID" && isExpiringSoon(c.expiresAt)
+    const expiringSoonCount = store.certificates.filter(
+      (c) => c.status === "APPROVED" && isExpiringSoon(c.expiresAt)
     ).length;
 
-    const missingCount = store.certifications.filter(
+    const missingCount = store.certificates.filter(
       (c) => c.status === "MISSING"
     ).length;
 
     // Compliance = % of required certs that are VALID and not expiring soon
     const validRequired = requiredCerts.filter((reqCert) => {
-      const cert = store.certifications.find((c) => c.type === reqCert);
-      return cert && cert.status === "VALID" && !isExpiringSoon(cert.expiresAt);
+      const cert = store.certificates.find((c) => c.typeName === reqCert);
+      return cert && cert.status === "APPROVED" && !isExpiringSoon(cert.expiresAt);
     }).length;
 
     const complianceScore = requiredCerts.length > 0

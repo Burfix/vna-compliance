@@ -11,7 +11,7 @@ export async function GET() {
   
   try {
     storeCount = await prisma.store.count();
-    certCount = await prisma.certification.count();
+    certCount = await prisma.certificate.count();
     databaseConnected = true;
   } catch (error) {
     console.error("Database connection failed:", error);

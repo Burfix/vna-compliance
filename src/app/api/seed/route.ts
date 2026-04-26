@@ -49,10 +49,11 @@ function randomDate(minDays: number, maxDays: number): Date {
 function generateCertifications(storeId: string, category: string) {
   const certs: Array<{
     storeId: string;
-    type: string;
+    typeName: string;
     status: string;
     issuedAt: Date | null;
     expiresAt: Date | null;
+    uploadedAt: Date | null;
     referenceNo: string | null;
     notes: string | null;
   }> = [];
@@ -75,31 +76,37 @@ function generateCertifications(storeId: string, category: string) {
     let status: string;
     let issuedAt: Date | null;
     let expiresAt: Date | null;
+    let uploadedAt: Date | null;
 
     if (rand < 0.5) {
-      status = "VALID";
+      status = "APPROVED";
       issuedAt = randomDate(-365, -60);
       expiresAt = randomDate(60, 360);
+      uploadedAt = issuedAt;
     } else if (rand < 0.7) {
-      status = "VALID";
+      status = "EXPIRING_SOON";
       issuedAt = randomDate(-365, -60);
       expiresAt = randomDate(1, 30);
+      uploadedAt = issuedAt;
     } else if (rand < 0.9) {
       status = "EXPIRED";
       issuedAt = randomDate(-545, -180);
       expiresAt = randomDate(-180, -1);
+      uploadedAt = issuedAt;
     } else {
       status = "MISSING";
       issuedAt = null;
       expiresAt = null;
+      uploadedAt = null;
     }
 
     certs.push({
       storeId,
-      type,
+      typeName: type,
       status,
       issuedAt,
       expiresAt,
+      uploadedAt: uploadedAt ?? null,
       referenceNo: status !== "MISSING" ? `REF-${Math.random().toString(36).substring(2, 10).toUpperCase()}` : null,
       notes: null,
     });
@@ -145,7 +152,7 @@ export async function GET() {
     for (const store of allStores) {
       const certs = generateCertifications(store.id, store.category);
       for (const cert of certs) {
-        await prisma.certification.create({ data: cert });
+        await prisma.certificate.create({ data: cert as Parameters<typeof prisma.certificate.create>[0]["data"] });
         results.certifications++;
       }
     }

@@ -138,11 +138,11 @@ export default async function StoreDetailPage(
             Start Audit
           </Link>
         </div>
-        {store.certifications.length === 0 ? (
+        {store.certificates.length === 0 ? (
           <p className="text-gray-500">No certifications found</p>
         ) : (
           <div className="space-y-3">
-            {store.certifications.map((cert) => (
+            {store.certificates.map((cert) => (
               <div
                 key={cert.id}
                 className="border border-gray-200 rounded-lg p-4"

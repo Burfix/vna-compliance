@@ -1,8 +1,7 @@
 import { DefaultSession } from "next-auth";
 
-// Use string union instead of importing Role from @prisma/client
-// to avoid pulling Prisma into the Edge Function bundle.
-type Role = "ADMIN" | "OFFICER";
+// String union — avoids pulling Prisma into the Edge Function bundle.
+type Role = "ADMIN" | "OFFICER" | "EXECUTIVE" | "TENANT";
 
 declare module "next-auth" {
   interface Session {
@@ -10,12 +9,14 @@ declare module "next-auth" {
       id: string;
       username: string;
       role: Role;
+      storeId: string | null;
     } & DefaultSession["user"];
   }
 
   interface User {
     username: string;
     role: Role;
+    storeId?: string | null;
   }
 }
 
@@ -24,5 +25,6 @@ declare module "next-auth/jwt" {
     id: string;
     username: string;
     role: Role;
+    storeId?: string | null;
   }
 }
