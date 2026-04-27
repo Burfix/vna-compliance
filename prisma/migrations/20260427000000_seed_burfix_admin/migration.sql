@@ -1,4 +1,4 @@
-﻿-- Ensure burfix@gmail.com exists as ADMIN in production
+-- Ensure burfix@gmail.com exists as ADMIN in production
 -- Safe to run multiple times (ON CONFLICT DO UPDATE)
 
 INSERT INTO "users" (
