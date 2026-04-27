@@ -15,6 +15,30 @@ const riskBadge = (level: "low" | "medium" | "high") => {
   return <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200 font-medium">Low Risk</span>;
 };
 
+const EVENT_LABELS: Record<string, string> = {
+  DOCUMENT_UPLOADED: "Uploaded",
+  DOCUMENT_APPROVED: "Approved",
+  DOCUMENT_REJECTED: "Rejected",
+  DOCUMENT_RESUBMISSION_REQUESTED: "Resubmission requested",
+  DOCUMENT_EXPIRED: "Expired",
+  NOTIFICATION_SENT: "Reminder sent",
+  OFFICER_COMMENT_ADDED: "Comment added",
+};
+
+function relativeTime(d: Date): string {
+  const diff = Date.now() - new Date(d).getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  return `${days} days ago`;
+}
+
+function lastActionLabel(item: ReviewQueueItem): string {
+  if (!item.lastAction) return "Awaiting first review";
+  const label = EVENT_LABELS[item.lastAction.eventType] ?? item.lastAction.eventType;
+  return `Last action: ${label} · ${relativeTime(item.lastAction.createdAt)}`;
+}
+
 export default function ReviewQueueClient({ items }: Props) {
   const [queue, setQueue] = useState<ReviewQueueItem[]>(items);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -116,6 +140,7 @@ export default function ReviewQueueClient({ items }: Props) {
                   Expires {new Date(item.expiresAt).toLocaleDateString()}
                 </p>
               )}
+              <p className="text-xs text-gray-400 mt-1 italic">{lastActionLabel(item)}</p>
             </button>
           ))
         )}

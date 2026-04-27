@@ -117,8 +117,8 @@ export default async function AppLayout({
               </span>
             )}
             {env.DEMO_MODE && (
-              <span className="px-2.5 py-1 text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200 rounded">
-                DEMO MODE
+              <span className="px-3 py-1 text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200 rounded-full">
+                V&amp;A Waterfront Trial · Demo data — not live tenant records
               </span>
             )}
             <span className={`px-2.5 py-1 text-xs font-medium border rounded ${getRoleBadgeColor(displayUser.role)}`}>

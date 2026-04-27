@@ -58,6 +58,7 @@ export type ReviewQueueItem = {
   storeCode: string;
   precinct: string;
   riskLevel: "low" | "medium" | "high";
+  lastAction: { eventType: string; actorName: string | null; createdAt: Date } | null;
 };
 
 export type RiskFlag = {
@@ -69,6 +70,7 @@ export type RiskFlag = {
   typeName: string;
   expiresAt: Date | null;
   daysUntilExpiry: number | null;
+  uploadedAt: Date | null;
 };
 
 export type AuditEventRow = {
@@ -233,6 +235,11 @@ export async function getReviewQueue(): Promise<ReviewQueueItem[]> {
       store: {
         select: { id: true, name: true, code: true, precinct: true },
       },
+      auditEvents: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { eventType: true, actorName: true, createdAt: true },
+      },
     },
     orderBy: { uploadedAt: "asc" },
   });
@@ -257,6 +264,7 @@ export async function getReviewQueue(): Promise<ReviewQueueItem[]> {
       storeCode: c.store.code,
       precinct: c.store.precinct,
       riskLevel: rl,
+      lastAction: c.auditEvents[0] ?? null,
     };
   });
 }
@@ -304,6 +312,7 @@ export async function getRiskFlags(): Promise<RiskFlag[]> {
       typeName: c.typeName,
       expiresAt: c.expiresAt,
       daysUntilExpiry: days,
+      uploadedAt: c.uploadedAt,
     };
   });
 }

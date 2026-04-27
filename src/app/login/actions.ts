@@ -20,6 +20,6 @@ export async function loginAction(formData: FormData) {
       // This is actually a successful redirect
       throw error;
     }
-    return { error: "Invalid username. Please try again." };
+    return { error: "User not found. Contact your compliance administrator." };
   }
 }

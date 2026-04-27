@@ -72,6 +72,28 @@ export default async function ExecDashboardPage({ searchParams }: Props) {
         </div>
       </div>
 
+      {/* ── Headline stat ──────────────────────── */}
+      {payload.summary.totalHighRisk > 0 || payload.summary.totalExpired > 0 ? (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-6 py-4 flex items-center gap-3">
+          <span className="text-2xl">🔥</span>
+          <p className="text-lg font-bold text-red-800">
+            {payload.summary.totalHighRisk} tenant{payload.summary.totalHighRisk !== 1 ? "s" : ""} at risk this week
+          </p>
+          {payload.summary.totalExpired > 0 && (
+            <span className="ml-auto text-sm font-medium text-red-700 bg-red-100 border border-red-200 px-3 py-1 rounded-full">
+              {payload.summary.totalExpired} expired cert{payload.summary.totalExpired !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className="bg-green-50 border border-green-200 rounded-xl px-6 py-4 flex items-center gap-3">
+          <span className="text-2xl">✅</span>
+          <p className="text-lg font-bold text-green-800">
+            No critical compliance breaches this week
+          </p>
+        </div>
+      )}
+
       {/* ── Summary Strip ─────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <SummaryPill label="Total Stores" value={payload.summary.totalStores} />

@@ -7,6 +7,23 @@ export const dynamic = "force-dynamic";
 
 type Severity = "critical" | "warning" | "info";
 
+/** Returns a human-readable urgency string for the Expiry column */
+function urgencyText(f: RiskFlag): string {
+  const now = Date.now();
+  if (f.flag === "MISSING") return "No submission on record";
+  if (f.flag === "REJECTED") {
+    if (f.uploadedAt) {
+      const days = Math.floor((now - f.uploadedAt.getTime()) / (1000 * 60 * 60 * 24));
+      return `Awaiting resubmission for ${days} day${days !== 1 ? "s" : ""}`;
+    }
+    return "Awaiting resubmission";
+  }
+  if (f.daysUntilExpiry === null) return "—";
+  if (f.daysUntilExpiry < 0) return `Overdue by ${Math.abs(f.daysUntilExpiry)} day${Math.abs(f.daysUntilExpiry) !== 1 ? "s" : ""}`;
+  if (f.daysUntilExpiry === 0) return "Expires today";
+  return `Expires in ${f.daysUntilExpiry} day${f.daysUntilExpiry !== 1 ? "s" : ""}`;
+}
+
 const flagConfig: Record<
   RiskFlag["flag"],
   { label: string; className: string; rowClass: string; severity: Severity; action: string }
@@ -141,13 +158,15 @@ export default async function RiskRadarPage() {
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Store</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Certificate</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Urgency</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recommended Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {sevFlags.map((f, i) => {
                         const fcfg = flagConfig[f.flag];
+                        const urgency = urgencyText(f);
+                        const isOverdue = f.daysUntilExpiry !== null && f.daysUntilExpiry < 0;
                         return (
                           <tr key={i} className={`${fcfg.rowClass} hover:bg-gray-50`}>
                             <td className="px-4 py-3">
@@ -160,18 +179,12 @@ export default async function RiskRadarPage() {
                                 {fcfg.label}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-500">
-                              {f.expiresAt ? (
-                                <span className={f.daysUntilExpiry !== null && f.daysUntilExpiry < 0 ? "text-red-600 font-medium" : ""}>
-                                  {f.expiresAt.toLocaleDateString()}
-                                  {f.daysUntilExpiry !== null && f.daysUntilExpiry < 0
-                                    ? ` (${Math.abs(f.daysUntilExpiry)}d overdue)`
-                                    : f.daysUntilExpiry !== null
-                                    ? ` (${f.daysUntilExpiry}d)`
-                                    : ""}
-                                </span>
-                              ) : (
-                                <span className="text-gray-400">—</span>
+                            <td className="px-4 py-3">
+                              <p className={`text-xs font-semibold ${isOverdue || f.flag === "EXPIRED" ? "text-red-600" : f.flag === "EXPIRING_SOON" ? "text-yellow-700" : "text-gray-600"}`}>
+                                {urgency}
+                              </p>
+                              {f.expiresAt && (
+                                <p className="text-xs text-gray-400 mt-0.5">{f.expiresAt.toLocaleDateString()}</p>
                               )}
                             </td>
                             <td className="px-4 py-3 text-xs text-gray-600 font-medium">

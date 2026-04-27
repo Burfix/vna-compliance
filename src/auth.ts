@@ -19,13 +19,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const username = credentials.username as string;
+        // Normalize: trim whitespace and lowercase so "Burfix@Gmail.com" matches "burfix@gmail.com"
+        const identifier = (credentials.username as string).trim().toLowerCase();
 
-        // Dynamic import — only runs server-side during sign-in
+        if (!identifier) return null;
+
+        // Dynamic import â€" only runs server-side during sign-in
         const { prisma } = await import("@/lib/db");
 
-        const user = await prisma.user.findUnique({
-          where: { username },
+        // Case-insensitive lookup â€" username field stores full email like "burfix@gmail.com"
+        const user = await prisma.user.findFirst({
+          where: {
+            username: { equals: identifier, mode: "insensitive" },
+          },
         });
 
         if (!user || !user.active) {
