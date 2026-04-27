@@ -5,6 +5,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { getDashboardPayload } from "@/lib/dashboard";
 import type { DashboardPayload, PrecinctRisk, TenantRisk, RecentAudit } from "@/lib/dashboard";
+import { getComplianceSummary } from "@/lib/compliance/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -56,20 +57,68 @@ export default async function DashboardPage() {
     payload = await getDashboardPayload();
   }
 
+  // Compliance summary for urgency banner (skip in MOCK_MODE)
+  const summary = !env.MOCK_MODE ? await getComplianceSummary() : null;
+  const auditReadiness = summary
+    ? Math.round(
+        (summary.compliantStores / Math.max(summary.totalStores, 1)) * 100
+      )
+    : Math.round((100 - (dashboardMetrics.nonCompliantStores / dashboardMetrics.totalStores) * 100));
+
+  const bannerVariant: "critical" | "warning" | "healthy" =
+    payload.nonCompliantStores > 0
+      ? "critical"
+      : payload.expiringSoonCount > 0
+      ? "warning"
+      : "healthy";
+
   return (
-    <div className="space-y-8">
-      {/* Welcome header */}
+    <div className="space-y-6">
+      {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">
-          Welcome back, {user?.name || "User"}
+        <p className="text-sm font-medium text-indigo-600 tracking-wide uppercase">ForgeStack Compliance Engine</p>
+        <h2 className="text-2xl font-bold text-gray-900 mt-1">
+          V&amp;A Waterfront — Precinct Compliance Command Center
         </h2>
         <p className="mt-1 text-sm text-gray-500">
-          V&A Waterfront Compliance Dashboard
+          Welcome back, {user?.name || "User"}
         </p>
       </div>
 
+      {/* Urgency Banner */}
+      {bannerVariant === "critical" && (
+        <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-5 py-4">
+          <span className="text-xl">🔥</span>
+          <p className="text-sm font-semibold text-red-800">
+            {payload.nonCompliantStores} tenant{payload.nonCompliantStores !== 1 ? "s" : ""} are non-compliant and require action this week
+          </p>
+          <Link href="/stores?filter=noncompliant" className="ml-auto text-xs font-medium text-red-700 underline whitespace-nowrap">
+            View tenants →
+          </Link>
+        </div>
+      )}
+      {bannerVariant === "warning" && (
+        <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-xl px-5 py-4">
+          <span className="text-xl">⚠</span>
+          <p className="text-sm font-semibold text-yellow-800">
+            {payload.expiringSoonCount} certificate{payload.expiringSoonCount !== 1 ? "s" : ""} expire within 30 days
+          </p>
+          <Link href="/stores?filter=expiringsoon" className="ml-auto text-xs font-medium text-yellow-700 underline whitespace-nowrap">
+            View expiring →
+          </Link>
+        </div>
+      )}
+      {bannerVariant === "healthy" && (
+        <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-5 py-4">
+          <span className="text-xl">✅</span>
+          <p className="text-sm font-semibold text-green-800">
+            Precinct compliance operating within target
+          </p>
+        </div>
+      )}
+
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <KPICard
           title="Total Tenants"
           value={payload.totalStores}
@@ -88,56 +137,131 @@ export default async function DashboardPage() {
           secondaryLabel={payload.highRiskStores > 0 ? `🔥 ${payload.highRiskStores} High Risk` : undefined}
         />
         <KPICard
-          title="Audits This Month"
-          value={payload.auditsThisMonth}
-          icon="📋"
-          color="green"
-          href="/audits?range=this_month"
+          title="Expiring in 30 Days"
+          value={payload.expiringSoonCount}
+          icon="⏰"
+          color="orange"
+          href="/stores?filter=expiringsoon"
         />
         <KPICard
-          title="Open Actions"
-          value={payload.openActions}
-          icon="🔧"
+          title="Awaiting Review"
+          value={summary?.awaitingReview ?? 0}
+          icon="🔍"
           color="purple"
-          href="/stores?filter=open_actions"
-          subtitle={payload.expiringSoonCount > 0 ? `${payload.expiringSoonCount} expiring soon` : undefined}
-          secondaryHref={payload.expiringSoonCount > 0 ? "/stores?filter=expiringsoon" : undefined}
-          secondaryLabel={payload.expiringSoonCount > 0 ? `⏰ ${payload.expiringSoonCount} Expiring Soon` : undefined}
+          href="/review-queue"
+        />
+        <KPICard
+          title="Audit Readiness"
+          value={`${auditReadiness}%`}
+          icon="🎯"
+          color="green"
+          href="/exec"
         />
       </div>
 
-      {/* Avg Compliance Score */}
+      {/* Precinct Compliance Health */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-500">Average Compliance Score</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Precinct Compliance</p>
+            <p className="mt-1 text-3xl font-bold text-gray-900">
               {payload.avgComplianceScore.toFixed(1)}%
             </p>
-            <div className="mt-3 w-full max-w-md">
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div
-                  className={`h-3 rounded-full transition-all ${getProgressBarColor(payload.avgComplianceScore)}`}
-                  style={{ width: `${Math.min(payload.avgComplianceScore, 100)}%` }}
-                />
-              </div>
-              <div className="flex justify-between mt-1 text-xs text-gray-400">
-                <span>0%</span>
-                <span>50%</span>
-                <span>100%</span>
-              </div>
-            </div>
           </div>
-          <div className="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center">
-            <span className="text-4xl">📊</span>
+          <div className="text-right">
+            <p className="text-sm text-gray-500">Audit Readiness Score</p>
+            <p className={`text-3xl font-bold ${auditReadiness >= 80 ? "text-green-600" : auditReadiness >= 60 ? "text-yellow-600" : "text-red-600"}`}>
+              {auditReadiness}%
+            </p>
           </div>
         </div>
+        <div className="w-full bg-gray-200 rounded-full h-3">
+          <div
+            className={`h-3 rounded-full transition-all ${getProgressBarColor(payload.avgComplianceScore)}`}
+            style={{ width: `${Math.min(payload.avgComplianceScore, 100)}%` }}
+          />
+        </div>
+        <div className="flex justify-between mt-1 text-xs text-gray-400">
+          <span>0%</span>
+          <span>Target: 90%</span>
+          <span>100%</span>
+        </div>
       </div>
+
+      {/* Risk Radar Preview */}
+      {payload.topRiskTenants.length > 0 && (
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Risk Radar — Top Tenant Risks</h3>
+              <p className="text-sm text-gray-500">Tenants requiring immediate compliance action</p>
+            </div>
+            <Link href="/risk-radar" className="text-sm font-medium text-red-600 hover:underline">
+              View all →
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-100">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tenant</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precinct</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compliance</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issue</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Next Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {payload.topRiskTenants.slice(0, 5).map((t) => (
+                  <tr key={t.id} className="hover:bg-gray-50">
+                    <td className="px-5 py-3">
+                      <Link href={`/stores/${t.id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600">
+                        {t.name}
+                      </Link>
+                      <p className="text-xs text-gray-400">{t.code}</p>
+                    </td>
+                    <td className="px-5 py-3 text-sm text-gray-600">{t.precinct}</td>
+                    <td className="px-5 py-3">
+                      <span className={`text-sm font-bold ${getScoreColor(t.complianceScore)}`}>
+                        {t.complianceScore}%
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {t.expiredCount > 0 && (
+                          <span className="text-xs px-2 py-0.5 bg-red-50 text-red-700 rounded border border-red-200">
+                            {t.expiredCount} Non-Compliant
+                          </span>
+                        )}
+                        {t.expiringSoonCount > 0 && (
+                          <span className="text-xs px-2 py-0.5 bg-yellow-50 text-yellow-700 rounded border border-yellow-200">
+                            {t.expiringSoonCount} Expiry Risk
+                          </span>
+                        )}
+                        {t.missingCount > 0 && (
+                          <span className="text-xs px-2 py-0.5 bg-gray-50 text-gray-700 rounded border border-gray-200">
+                            {t.missingCount} Action Required
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <Link href={`/stores/${t.id}`} className="text-xs text-blue-600 hover:underline font-medium">
+                        Review certificates →
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Highest Risk Precincts */}
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Highest Risk Precincts</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Precinct Risk Overview</h3>
           <p className="text-sm text-gray-500">Precincts ranked by compliance risk</p>
         </div>
         <div className="p-6">
@@ -158,8 +282,8 @@ export default async function DashboardPage() {
         {/* Top Risk Tenants */}
         <div className="bg-white rounded-lg border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Top Risk Tenants</h3>
-            <p className="text-sm text-gray-500">Tenants requiring attention</p>
+            <h3 className="text-lg font-semibold text-gray-900">Tenant Risk Queue</h3>
+            <p className="text-sm text-gray-500">Tenants requiring compliance attention</p>
           </div>
           <div className="p-6">
             {payload.topRiskTenants.length === 0 ? (
@@ -201,21 +325,42 @@ export default async function DashboardPage() {
 
       {/* Quick Actions */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Command Actions</h3>
         <div className="flex gap-4 flex-wrap">
           <Link
-            href="/audits/new"
+            href="/review-queue"
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
+            <span>🔍</span>
+            Review Queue
+          </Link>
+          <Link
+            href="/risk-radar"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium"
+          >
+            <span>🚨</span>
+            Risk Radar
+          </Link>
+          <Link
+            href="/audits/new"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+          >
             <span>📋</span>
-            Start New Audit
+            New Audit
           </Link>
           <Link
             href="/stores"
             className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
           >
             <span>🏪</span>
-            View All Stores
+            All Tenants
+          </Link>
+          <Link
+            href="/report"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+          >
+            <span>📊</span>
+            Weekly Report
           </Link>
         </div>
       </div>
@@ -350,7 +495,7 @@ function KPICard({
   secondaryLabel,
 }: {
   title: string;
-  value: number;
+  value: number | string;
   icon: string;
   color: string;
   href: string;
@@ -363,6 +508,7 @@ function KPICard({
     red: "bg-red-50 text-red-600",
     green: "bg-green-50 text-green-600",
     purple: "bg-purple-50 text-purple-600",
+    orange: "bg-orange-50 text-orange-600",
   };
 
   return (

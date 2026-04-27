@@ -27,7 +27,7 @@ export default async function ExecDashboardPage({ searchParams }: Props) {
   /* ── Access control ─────────────────────────── */
   const session = await auth();
   const role = (session?.user as { role?: string } | undefined)?.role;
-  if (role !== "ADMIN") {
+  if (role !== "ADMIN" && role !== "EXECUTIVE") {
     redirect("/dashboard");
   }
 

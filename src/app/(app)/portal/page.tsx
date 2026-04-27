@@ -26,17 +26,17 @@ const statusConfig: Record<
     dot: "bg-yellow-500",
   },
   EXPIRED: {
-    label: "Expired",
+    label: "Non-Compliant",
     className: "bg-red-50 text-red-700 border-red-200",
     dot: "bg-red-500",
   },
   MISSING: {
-    label: "Missing",
-    className: "bg-gray-50 text-gray-600 border-gray-200",
-    dot: "bg-gray-400",
+    label: "Action Required",
+    className: "bg-orange-50 text-orange-700 border-orange-200",
+    dot: "bg-orange-500",
   },
   REJECTED: {
-    label: "Rejected",
+    label: "Action Required",
     className: "bg-red-50 text-red-700 border-red-200",
     dot: "bg-red-600",
   },
@@ -102,10 +102,10 @@ export default async function TenantPortalPage() {
       {/* Header */}
       <div>
         <p className="text-sm font-medium text-green-600 tracking-wide uppercase">
-          Tenant Portal
+          Compliance Portal
         </p>
         <h2 className="text-2xl font-bold text-gray-900 mt-1">
-          {store?.name ?? "Your Compliance Documents"}
+          {store?.name ?? "Your Compliance Status"}
         </h2>
         {store && (
           <p className="text-sm text-gray-500 mt-1">
@@ -159,15 +159,16 @@ export default async function TenantPortalPage() {
 
       {/* Certificate list */}
       <div>
-        <h3 className="text-base font-semibold text-gray-900 mb-4">
-          Required Certificates
+        <h3 className="text-base font-semibold text-gray-900 mb-1">
+          Certificate Requirements
         </h3>
+        <p className="text-xs text-gray-500 mb-4">Review each certificate below. Action Required items need immediate attention.</p>
 
         {certificates.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-            <p className="text-gray-400 text-sm">
-              No certificates found. Your compliance officer will set up your requirements.
-            </p>
+            <p className="text-3xl mb-3">📋</p>
+            <p className="text-gray-600 text-sm font-medium">No certificate requirements found.</p>
+            <p className="text-gray-400 text-xs mt-1">Your compliance officer will configure your requirements.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -247,7 +248,7 @@ export default async function TenantPortalPage() {
                       cert.status === "REJECTED" ||
                       cert.status === "EXPIRED") && (
                       <div className="flex-shrink-0">
-                        <UploadHint />
+                        <UploadHint status={cert.status} />
                       </div>
                     )}
                   </div>
@@ -262,11 +263,16 @@ export default async function TenantPortalPage() {
 }
 
 // Placeholder upload hint — full upload requires Vercel Blob or similar
-function UploadHint() {
+function UploadHint({ status }: { status?: string }) {
+  const label = status === "MISSING"
+    ? "Submit Certificate"
+    : status === "EXPIRED"
+    ? "Renew Certificate"
+    : "Resubmit Certificate";
   return (
     <div className="text-right">
-      <span className="inline-block px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg">
-        Upload required
+      <span className="inline-block px-3 py-1.5 text-xs font-medium text-white bg-blue-600 border border-blue-700 rounded-lg cursor-default">
+        {label}
       </span>
       <p className="text-xs text-gray-400 mt-1">Contact officer to upload</p>
     </div>

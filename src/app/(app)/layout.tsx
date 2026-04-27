@@ -47,6 +47,7 @@ export default async function AppLayout({
           { name: "Audits", href: "/audits", icon: "📋" },
           { name: "Tenants", href: "/stores", icon: "🏪" },
           { name: "Audit Trail", href: "/audit-trail", icon: "📜" },
+          { name: "Weekly Report", href: "/report", icon: "📊" },
         ]
       : []),
     { name: "Settings", href: "/settings", icon: "⚙️" },
@@ -65,10 +66,11 @@ export default async function AppLayout({
       {/* Sidebar */}
       <div className="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200">
         {/* Logo/Title */}
-        <div className="h-16 flex items-center px-6 border-b border-gray-200">
-          <Link href="/dashboard" className="text-lg font-semibold text-gray-900">
-            Operational Compliance
+        <div className="h-16 flex flex-col justify-center px-6 border-b border-gray-200">
+          <Link href="/dashboard" className="text-sm font-bold text-gray-900 leading-tight">
+            ForgeStack Compliance Engine
           </Link>
+          <p className="text-xs text-gray-400 mt-0.5 leading-tight">V&amp;A Waterfront</p>
         </div>
 
         {/* Navigation */}
@@ -106,7 +108,7 @@ export default async function AppLayout({
         {/* Top bar */}
         <div className="sticky top-0 z-10 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
           <h1 className="text-xl font-semibold text-gray-900">
-            Operational Compliance Engine
+            ForgeStack Compliance Engine
           </h1>
           <div className="flex items-center gap-4">
             {env.MOCK_MODE && (

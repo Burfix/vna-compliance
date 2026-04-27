@@ -50,11 +50,14 @@ export type ReviewQueueItem = {
   id: string;
   typeName: string;
   fileName: string | null;
+  fileKey: string | null;
   uploadedAt: Date | null;
+  expiresAt: Date | null;
   storeId: string;
   storeName: string;
   storeCode: string;
   precinct: string;
+  riskLevel: "low" | "medium" | "high";
 };
 
 export type RiskFlag = {
@@ -221,24 +224,41 @@ export async function getStoreCertificates(storeId: string): Promise<Certificate
 // ── Review queue: all certs awaiting officer review ───────────────────────────
 
 export async function getReviewQueue(): Promise<ReviewQueueItem[]> {
+  const now = new Date();
+  const soonThreshold = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
   const rows = await db.certificate.findMany({
     where: { status: "AWAITING_REVIEW" },
     include: {
-      store: { select: { id: true, name: true, code: true, precinct: true } },
+      store: {
+        select: { id: true, name: true, code: true, precinct: true },
+      },
     },
     orderBy: { uploadedAt: "asc" },
   });
 
-  return rows.map((c) => ({
-    id: c.id,
-    typeName: c.typeName,
-    fileName: c.fileName,
-    uploadedAt: c.uploadedAt,
-    storeId: c.store.id,
-    storeName: c.store.name,
-    storeCode: c.store.code,
-    precinct: c.store.precinct,
-  }));
+  return rows.map((c) => {
+    const isAlreadyExpired = c.expiresAt ? c.expiresAt < now : false;
+    const isExpiringSoon = c.expiresAt ? c.expiresAt <= soonThreshold : false;
+    const rl: "low" | "medium" | "high" = isAlreadyExpired
+      ? "high"
+      : isExpiringSoon
+      ? "medium"
+      : "low";
+    return {
+      id: c.id,
+      typeName: c.typeName,
+      fileName: c.fileName,
+      fileKey: c.fileKey,
+      uploadedAt: c.uploadedAt,
+      expiresAt: c.expiresAt,
+      storeId: c.store.id,
+      storeName: c.store.name,
+      storeCode: c.store.code,
+      precinct: c.store.precinct,
+      riskLevel: rl,
+    };
+  });
 }
 
 // ── Risk Radar ────────────────────────────────────────────────────────────────
