@@ -193,7 +193,18 @@ async function main() {
       active: true,
     },
   });
-  
+
+  await prisma.user.upsert({
+    where: { username: "burfix@gmail.com" },
+    update: { role: "ADMIN", active: true },
+    create: {
+      username: "burfix@gmail.com",
+      name: "Burfix Admin",
+      role: "ADMIN",
+      active: true,
+    },
+  });
+
   console.log("✅ Seeding complete!");
   console.log(`   - ${createdStores.length} stores`);
   console.log(`   - ${certCount} certifications`);
