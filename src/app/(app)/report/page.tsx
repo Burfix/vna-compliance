@@ -53,7 +53,7 @@ export default async function WeeklyReportPage() {
           <KPI label="Total Tenants" value={summary.totalStores} />
           <KPI label="Compliant" value={summary.compliantStores} color="green" />
           <KPI label="Non-Compliant" value={summary.nonCompliantStores} color="red" />
-          <KPI label="Expiring Soon" value={summary.expiringSoonCount} color="yellow" />
+          <KPI label="Expiring Soon" value={summary.expiringSoon} color="yellow" />
           <KPI label="Audit Readiness" value={`${auditReadiness}%`} color={auditReadiness >= 80 ? "green" : auditReadiness >= 60 ? "yellow" : "red"} />
         </div>
       </section>
