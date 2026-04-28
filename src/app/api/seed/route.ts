@@ -180,7 +180,18 @@ export async function GET() {
       },
     });
 
-    results.users.push(sarah.username, john.username);
+    const burfix = await prisma.user.upsert({
+      where: { username: "burfix@gmail.com" },
+      update: { role: "ADMIN", active: true },
+      create: {
+        username: "burfix@gmail.com",
+        name: "Burfix Admin",
+        role: "ADMIN",
+        active: true,
+      },
+    });
+
+    results.users.push(sarah.username, john.username, burfix.username);
 
     return NextResponse.json({
       success: true,
