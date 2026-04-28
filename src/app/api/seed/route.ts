@@ -123,6 +123,11 @@ export async function GET() {
       users: [] as string[],
     };
 
+    // Ensure schema columns exist that may not have been migrated yet
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "stores" ADD COLUMN IF NOT EXISTS "riskLevel" TEXT NOT NULL DEFAULT 'low'`
+    );
+
     // Seed stores
     for (const storeData of stores) {
       const store = await prisma.store.upsert({
