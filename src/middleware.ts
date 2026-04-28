@@ -13,9 +13,12 @@ export default auth((req) => {
   // Public path prefixes (NOT "/" — that matches everything!)
   const publicPrefixes = [
     "/login",
+    "/forgot-password",
     "/demo",
     "/api/auth",
     "/api/debug",
+    "/api/seed",
+    "/api/health",
     "/_next",
     "/favicon.ico",
     "/zz-debug",
